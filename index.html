@@ -394,10 +394,14 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
   </div>
 </div>
 
+<script src="https://accounts.google.com/gsi/client" async defer onload="gisReady=true"></script>
 <script>
 // ── CONFIG ─────────────────────────────────────────────────────────────────
-var DRIVE_CLIENT_ID = ''; // Set your Google OAuth Client ID here after setup
-var DRIVE_FOLDER_ID = ''; // Optional default folder ID
+var DRIVE_CLIENT_ID = '173250268242-rvqdrltatjum14siek1s2qbfads45l48.apps.googleusercontent.com';
+var DRIVE_FOLDER_ID = '1h4nYScP_FpUsilyB8USpAAxxWs34bhM4';
+var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+var gisReady = false;
+var driveToken = null;
 
 // ── STATE ──────────────────────────────────────────────────────────────────
 var photoData = null;
@@ -663,39 +667,106 @@ function checkDecl(){
 }
 
 // ── DRIVE MODAL ────────────────────────────────────────────────────────────
+// ── GOOGLE DRIVE REAL INTEGRATION ─────────────────────────────────────────
+function getGoogleToken(callback){
+  if(driveToken){
+    // Token already obtained this session
+    callback(driveToken);
+    return;
+  }
+  if(!window.google || !window.google.accounts){
+    alert('Google Identity Services not loaded.\nPlease make sure you are online and refresh the page.');
+    return;
+  }
+  var client = google.accounts.oauth2.initTokenClient({
+    client_id: DRIVE_CLIENT_ID,
+    scope: DRIVE_SCOPE,
+    callback: function(resp){
+      if(resp.error){
+        alert('Google login failed: '+resp.error+'\n\nMake sure:\n1. You are on https://calexcl.github.io\n2. This URL is in your OAuth Authorised Origins\n3. Pop-ups are allowed for this site');
+        return;
+      }
+      driveToken = resp.access_token;
+      callback(driveToken);
+    }
+  });
+  client.requestAccessToken();
+}
+
+function uploadToDrive(token, fileName, content, mimeType, folderId, onSuccess){
+  var meta = {name: fileName, mimeType: mimeType};
+  if(folderId) meta.parents = [folderId];
+
+  var boundary = 'meg_boundary_'+Date.now();
+  var body = '--'+boundary+'\r\n'
+    +'Content-Type: application/json; charset=UTF-8\r\n\r\n'
+    +JSON.stringify(meta)+'\r\n'
+    +'--'+boundary+'\r\n'
+    +'Content-Type: '+mimeType+'\r\n\r\n'
+    +content+'\r\n'
+    +'--'+boundary+'--';
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST','https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
+  xhr.setRequestHeader('Authorization','Bearer '+token);
+  xhr.setRequestHeader('Content-Type','multipart/related; boundary='+boundary);
+  xhr.onload = function(){
+    if(xhr.status === 200 || xhr.status === 201){
+      var resp = JSON.parse(xhr.responseText);
+      onSuccess(resp.id, resp.name);
+    } else if(xhr.status === 401){
+      // Token expired — clear and retry
+      driveToken = null;
+      alert('Google session expired. Please click Save to Drive again to re-authenticate.');
+    } else {
+      alert('Drive upload failed ('+xhr.status+').\n'+xhr.responseText);
+    }
+  };
+  xhr.onerror = function(){ alert('Network error during Drive upload. Check your connection.'); };
+  xhr.send(body);
+}
+
+function saveToDrive(){
+  var clientId = document.getElementById('clientIdInput').value.trim();
+  var folderId = document.getElementById('folderIdInput').value.trim();
+  var fileName  = document.getElementById('fileNameInput').value.trim() || 'MyEden_Employment_Application';
+  var fmt = document.getElementById('saveFormat').value;
+
+  // Extract folder ID if full URL was pasted
+  var folderMatch = folderId.match(/folders\/([a-zA-Z0-9_-]+)/);
+  if(folderMatch) folderId = folderMatch[1];
+  if(!folderId) folderId = DRIVE_FOLDER_ID;
+
+  DRIVE_CLIENT_ID = clientId || DRIVE_CLIENT_ID;
+  closeDriveModal();
+
+  if(fmt === 'pdf' || fmt === 'both'){
+    if(checkDecl()) window.print();
+  }
+
+  if(fmt === 'json' || fmt === 'both'){
+    var jsonStr = JSON.stringify(collectFormData(), null, 2);
+    var fullName = fileName+'_'+new Date().toISOString().slice(0,10)+'.json';
+    document.getElementById('autosaveStatus').textContent = 'Connecting to Google...';
+    getGoogleToken(function(token){
+      document.getElementById('autosaveStatus').textContent = 'Uploading to Drive...';
+      uploadToDrive(token, fullName, jsonStr, 'application/json', folderId, function(fileId, name){
+        document.getElementById('autosaveStatus').textContent = '✓ Saved to Drive: '+name;
+        alert('✓ Successfully saved to Google Drive!\n\nFile: '+name+'\nFolder: '+(folderId||'My Drive (root)'));
+      });
+    });
+  }
+}
+
 function openDriveModal(){
   if(!checkDecl()) return;
-  // Pre-fill saved settings
-  if(DRIVE_CLIENT_ID) document.getElementById('clientIdInput').value = DRIVE_CLIENT_ID;
-  if(DRIVE_FOLDER_ID) document.getElementById('folderIdInput').value = DRIVE_FOLDER_ID;
+  document.getElementById('clientIdInput').value = DRIVE_CLIENT_ID;
+  document.getElementById('folderIdInput').value = DRIVE_FOLDER_ID;
   document.getElementById('driveModal').classList.add('active');
 }
 function closeDriveModal(){ document.getElementById('driveModal').classList.remove('active'); }
 
-function saveToDrive(){
-  var clientId = document.getElementById('clientIdInput').value.trim();
-  if(!clientId){
-    alert('Please enter your Google API Client ID.\n\nSetup guide:\n1. console.cloud.google.com\n2. New Project → Enable Google Drive API\n3. Credentials → OAuth 2.0 Client ID\n4. Paste Client ID here');
-    return;
-  }
-  DRIVE_CLIENT_ID = clientId;
-  DRIVE_FOLDER_ID = document.getElementById('folderIdInput').value.trim();
-  var fmt = document.getElementById('saveFormat').value;
-  closeDriveModal();
-
-  if(fmt === 'pdf' || fmt === 'both'){ if(checkDecl()) window.print(); }
-  if(fmt === 'json' || fmt === 'both'){
-    // Once Client ID is configured and app is on GitHub Pages,
-    // this will authenticate via Google OAuth and upload to Drive.
-    // For now, fallback to local download with instructions.
-    saveDraftLocal();
-    alert('✓ Draft saved locally.\n\nTo enable direct Google Drive upload:\n1. Complete Google Cloud setup (see guide)\n2. Deploy to GitHub Pages\n3. Add your GitHub Pages URL to OAuth origins\n4. The Drive upload will work automatically.');
-  }
-}
-
 function printForm(){ if(checkDecl()) window.print(); }
-
-// ── INIT ───────────────────────────────────────────────────────────────────
 window.onload = function(){
   loadLogo();
 
