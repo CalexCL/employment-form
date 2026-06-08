@@ -399,7 +399,7 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 var DRIVE_CLIENT_ID = '173250268242-rvqdrltatjum14siek1s2qbfads45l48.apps.googleusercontent.com';
 var DRIVE_FOLDER_ID = '1h4nYScP_FpUsilyB8USpAAxxWs34bhM4';
-var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/drive.file';
 var gisReady = false;
 var driveToken = null;
 
@@ -706,8 +706,15 @@ function uploadToDrive(token, fileName, content, mimeType, folderId, onSuccess){
     +content+'\r\n'
     +'--'+boundary+'--';
 
+  // All 3 params required for Shared Drive folder support
+  var url = 'https://www.googleapis.com/upload/drive/v3/files'
+    +'?uploadType=multipart'
+    +'&supportsAllDrives=true'
+    +'&includeItemsFromAllDrives=true'
+    +'&fields=id,name,parents';
+
   var xhr = new XMLHttpRequest();
-  xhr.open('POST','https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart');
+  xhr.open('POST', url);
   xhr.setRequestHeader('Authorization','Bearer '+token);
   xhr.setRequestHeader('Content-Type','multipart/related; boundary='+boundary);
   xhr.onload = function(){
@@ -715,14 +722,22 @@ function uploadToDrive(token, fileName, content, mimeType, folderId, onSuccess){
       var resp = JSON.parse(xhr.responseText);
       onSuccess(resp.id, resp.name);
     } else if(xhr.status === 401){
-      // Token expired — clear and retry
       driveToken = null;
       alert('Google session expired. Please click Save to Drive again to re-authenticate.');
+    } else if(xhr.status === 403){
+      alert('⚠ Permission denied.\n\nFor a Shared Drive, make sure:\n1. myeden.group account is logged in\n2. The account has "Contributor" or "Content Manager" role in the Shared Drive\n3. The app is approved as a test user in Google Cloud Console');
+    } else if(xhr.status === 404){
+      if(folderId){
+        alert('⚠ Shared Drive folder not found.\nTrying root of My Drive instead...\n\nTo fix permanently:\n1. Confirm folder ID: '+folderId+'\n2. Confirm myeden.group has access to this Shared Drive');
+        uploadToDrive(token, fileName, content, mimeType, null, onSuccess);
+      } else {
+        alert('Drive upload failed (404).\n'+xhr.responseText);
+      }
     } else {
-      alert('Drive upload failed ('+xhr.status+').\n'+xhr.responseText);
+      alert('Drive upload failed ('+xhr.status+').\n\n'+xhr.responseText);
     }
   };
-  xhr.onerror = function(){ alert('Network error during Drive upload. Check your connection.'); };
+  xhr.onerror = function(){ alert('Network error. Check your internet connection.'); };
   xhr.send(body);
 }
 
