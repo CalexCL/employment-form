@@ -101,7 +101,10 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
 
 <!-- REF + DATE -->
 <div class="form-row">
-  <div class="form-group" style="flex:2"><label>REF: MEG-EAF-v.2026.06</label></div>
+  <div class="form-group" style="flex:2">
+    <label>Form Reference</label>
+    <span id="formRef" style="font-size:12px;font-weight:700;color:#333;padding:3px 0;display:block"></span>
+  </div>
   <div class="form-group" style="flex:1">
     <label>Date of Application <span style="color:red">*</span></label>
     <input type="date" id="appDate" required>
@@ -361,7 +364,7 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
 <!-- ACTION BAR -->
 <div class="action-bar">
   <button class="btn-action btn-draft" onclick="saveDraftLocal()">&#128190; Save Draft</button>
-  <button class="btn-action btn-load" onclick="document.getElementById('loadInput').click()">&#128194; Load Draft</button>
+  <button class="btn-action btn-load" onclick="openLoadModal()">&#128194; Load Draft</button>
   <input type="file" id="loadInput" accept=".json" style="display:none" onchange="loadDraft(event)">
   <button class="btn-action btn-drive" onclick="openDriveModal()">&#9729; Save to Drive</button>
   <button class="btn-action btn-print" onclick="printForm()">&#128438; Print / Save PDF</button>
@@ -370,7 +373,29 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
 
 </div><!-- /form-wrap -->
 
-<!-- DRIVE MODAL -->
+<!-- LOAD MODAL -->
+<div class="modal-bg" id="loadModal">
+  <div class="modal-inner">
+    <h3>&#128194; Load Draft</h3>
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <button class="btn-action btn-drive" style="flex:1;justify-content:center" onclick="loadFromDrive()">&#9729; From Google Drive</button>
+      <button class="btn-action btn-load" style="flex:1;justify-content:center" onclick="document.getElementById('loadInput').click();closeLoadModal()">&#128187; From Local File</button>
+    </div>
+    <div id="driveFileList" style="display:none">
+      <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:6px">Select a draft to load:</div>
+      <div id="driveFileItems" style="max-height:260px;overflow-y:auto;border:1px solid #ddd;border-radius:4px"></div>
+    </div>
+    <div id="driveFileLoading" style="display:none;text-align:center;padding:20px;font-size:13px;color:#888">
+      &#8987; Connecting to Google Drive...
+    </div>
+    <div id="driveFileEmpty" style="display:none;text-align:center;padding:20px;font-size:13px;color:#888">
+      No draft files found in the Drive folder.
+    </div>
+    <div style="margin-top:12px;text-align:right">
+      <button class="btn-cancel" onclick="closeLoadModal()">Cancel</button>
+    </div>
+  </div>
+</div>
 <div class="modal-bg" id="driveModal">
   <div class="modal-inner">
     <h3>&#9729; Save to Google Drive</h3>
@@ -410,7 +435,19 @@ var sigCtx, sigCanvas;
 var autoSaveTimer = null;
 var workExpCount = 0;
 
-// ── LOGO ───────────────────────────────────────────────────────────────────
+// ── VERSION NUMBER (update only via UVN command) ───────────────────────────
+var FORM_VERSION = 'MEG-EAF v.2026.06.09-01:40';
+
+// ── SMART FILENAME ─────────────────────────────────────────────────────────
+function getDefaultFileName(){
+  var engName = (document.getElementById('nameEnglish').value || '').trim();
+  var chiName = (document.getElementById('nameChinese').value || '').trim();
+  var appDate = (document.getElementById('appDate').value || '').trim();
+  var base = engName || chiName || appDate || new Date().toISOString().slice(0,10);
+  // Sanitise: replace spaces with underscores, strip unsafe chars
+  base = base.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u4e00-\u9fff\-]/g,'');
+  return 'MEG-EAF_'+base;
+}
 function loadLogo(){
   var img = document.getElementById('companyLogo');
   img.src = "https://i.postimg.cc/Bb15Phb1/My-Eden-Group-Logo-icon-color.png";
@@ -631,11 +668,10 @@ function scheduleAutoSave(){
 // ── SAVE DRAFT (local download) ────────────────────────────────────────────
 function saveDraftLocal(){
   var data = collectFormData();
-  var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  var blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  var name = (document.getElementById('nameEnglish').value || 'Draft').replace(/\s+/g,'_');
-  a.download = 'MEG-EAF_'+name+'_'+new Date().toISOString().slice(0,10)+'.json';
+  a.download = getDefaultFileName()+'_'+new Date().toISOString().slice(0,10)+'.json';
   a.click();
   document.getElementById('autosaveStatus').textContent = 'Draft saved: '+new Date().toLocaleTimeString();
 }
@@ -777,13 +813,139 @@ function openDriveModal(){
   if(!checkDecl()) return;
   document.getElementById('clientIdInput').value = DRIVE_CLIENT_ID;
   document.getElementById('folderIdInput').value = DRIVE_FOLDER_ID;
+  // Auto-set smart filename
+  document.getElementById('fileNameInput').value = getDefaultFileName();
   document.getElementById('driveModal').classList.add('active');
 }
 function closeDriveModal(){ document.getElementById('driveModal').classList.remove('active'); }
 
+// ── LOAD MODAL ─────────────────────────────────────────────────────────────
+function openLoadModal(){
+  document.getElementById('driveFileList').style.display = 'none';
+  document.getElementById('driveFileLoading').style.display = 'none';
+  document.getElementById('driveFileEmpty').style.display = 'none';
+  document.getElementById('loadModal').classList.add('active');
+}
+function closeLoadModal(){
+  document.getElementById('loadModal').classList.remove('active');
+}
+
+function loadFromDrive(){
+  document.getElementById('driveFileLoading').style.display = 'block';
+  document.getElementById('driveFileList').style.display = 'none';
+  document.getElementById('driveFileEmpty').style.display = 'none';
+
+  getGoogleToken(function(token){
+    // List JSON files in the configured folder, sorted by modified date
+    var folderId = DRIVE_FOLDER_ID;
+    var query = encodeURIComponent(
+      "mimeType='application/json'"
+      + (folderId ? " and '"+folderId+"' in parents" : "")
+      + " and trashed=false"
+    );
+    var url = 'https://www.googleapis.com/drive/v3/files'
+      +'?q='+query
+      +'&orderBy=modifiedTime+desc'
+      +'&fields=files(id,name,modifiedTime,size)'
+      +'&supportsAllDrives=true'
+      +'&includeItemsFromAllDrives=true'
+      +'&pageSize=50';
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.setRequestHeader('Authorization','Bearer '+token);
+    xhr.onload = function(){
+      document.getElementById('driveFileLoading').style.display = 'none';
+      if(xhr.status === 200){
+        var data = JSON.parse(xhr.responseText);
+        var files = data.files || [];
+        if(files.length === 0){
+          document.getElementById('driveFileEmpty').style.display = 'block';
+        } else {
+          renderDriveFileList(files, token);
+        }
+      } else if(xhr.status === 401){
+        driveToken = null;
+        closeLoadModal();
+        alert('Google session expired. Please try again.');
+      } else {
+        closeLoadModal();
+        alert('Could not list Drive files ('+xhr.status+').\n'+xhr.responseText);
+      }
+    };
+    xhr.onerror = function(){
+      document.getElementById('driveFileLoading').style.display = 'none';
+      alert('Network error. Check your connection.');
+    };
+    xhr.send();
+  });
+}
+
+function renderDriveFileList(files, token){
+  var container = document.getElementById('driveFileItems');
+  container.innerHTML = '';
+  files.forEach(function(f){
+    var d = new Date(f.modifiedTime);
+    var dateStr = d.toLocaleDateString()+' '+d.toLocaleTimeString();
+    var sizeKB = f.size ? (Math.round(f.size/1024*10)/10)+' KB' : '';
+    var item = document.createElement('div');
+    item.style.cssText = 'padding:10px 12px;border-bottom:1px solid #eee;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .15s';
+    item.innerHTML = '<div>'
+      +'<div style="font-size:13px;font-weight:600;color:#222">'+f.name+'</div>'
+      +'<div style="font-size:11px;color:#888;margin-top:2px">'+dateStr+(sizeKB?' &nbsp;·&nbsp; '+sizeKB:'')+'</div>'
+      +'</div>'
+      +'<button style="padding:4px 12px;background:#1a7340;color:#fff;border:none;border-radius:3px;font-size:12px;cursor:pointer">Load</button>';
+    item.querySelector('button').addEventListener('click', function(){
+      downloadDriveFile(f.id, f.name, token);
+    });
+    item.addEventListener('mouseover', function(){ item.style.background='#f0f7f0'; });
+    item.addEventListener('mouseout',  function(){ item.style.background=''; });
+    container.appendChild(item);
+  });
+  document.getElementById('driveFileList').style.display = 'block';
+}
+
+function downloadDriveFile(fileId, fileName, token){
+  document.getElementById('driveFileLoading').style.display = 'block';
+  document.getElementById('driveFileList').style.display = 'none';
+
+  var url = 'https://www.googleapis.com/drive/v3/files/'+fileId
+    +'?alt=media&supportsAllDrives=true';
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url);
+  xhr.setRequestHeader('Authorization','Bearer '+token);
+  xhr.onload = function(){
+    document.getElementById('driveFileLoading').style.display = 'none';
+    if(xhr.status === 200){
+      try{
+        var data = JSON.parse(xhr.responseText);
+        closeLoadModal();
+        restoreFormData(data);
+        document.getElementById('autosaveStatus').textContent = '✓ Loaded from Drive: '+fileName;
+      } catch(e){
+        alert('Could not parse draft file. It may be corrupted.');
+      }
+    } else if(xhr.status === 401){
+      driveToken = null;
+      closeLoadModal();
+      alert('Google session expired. Please try again.');
+    } else {
+      alert('Could not download file ('+xhr.status+').\n'+xhr.responseText);
+    }
+  };
+  xhr.onerror = function(){
+    document.getElementById('driveFileLoading').style.display = 'none';
+    alert('Network error downloading file.');
+  };
+  xhr.send();
+}
+
 function printForm(){ if(checkDecl()) window.print(); }
 window.onload = function(){
   loadLogo();
+
+  // Set hardcoded version number
+  document.getElementById('formRef').textContent = FORM_VERSION;
 
   // Today's date
   var t = new Date();
