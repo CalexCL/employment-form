@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyEden Employment Application</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;font-size:13px;color:#222;background:#f5f5f5}
+.form-wrap{max-width:900px;margin:0 auto;background:#fff;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;border-bottom:2px solid #222;padding-bottom:12px}
+.logo-area h1{font-size:22px;font-weight:900;letter-spacing:-0.5px}.logo-area h1 span{color:#2e7d32}
+.photo-box{width:110px;height:130px;border:1.5px solid #888;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:#fafafa;flex-shrink:0;overflow:hidden}
+.photo-box .ph-label{font-size:11px;color:#888;text-align:center;pointer-events:none;z-index:1}
+.photo-box img.preview{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:2}
+.photo-btns{display:flex;gap:4px;margin-top:4px}
+.photo-btns button{font-size:10px;padding:2px 6px;border:1px solid #aaa;background:#fff;cursor:pointer;border-radius:3px}
+.section-title{font-size:12px;font-weight:700;background:#ddd;padding:4px 8px;margin:14px 0 8px;text-transform:uppercase;letter-spacing:.5px}
+.form-row{display:flex;gap:12px;margin-bottom:8px;align-items:center;flex-wrap:wrap}
+.form-group{display:flex;flex-direction:column;gap:2px;flex:1;min-width:140px}
+.form-group label{font-size:11px;color:#555;font-weight:600}
+.form-group input,.form-group select,.form-group textarea{border:none;border-bottom:1px solid #555;padding:3px 0;font-size:13px;background:transparent;outline:none;width:100%}
+.form-group textarea{border:1px solid #aaa;padding:6px;resize:vertical;border-radius:3px;min-height:60px}
+.radio-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:8px}
+.radio-row label{font-size:13px;font-weight:600;min-width:110px}
+.radio-group{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.radio-group label,.cb-group label{display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;font-weight:400}
+.cb-group{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:12px}
+th{background:#eee;border:1px solid #bbb;padding:5px 8px;text-align:left;font-size:11px}
+td{border:1px solid #bbb;padding:3px}
+td input,td select{border:none;width:100%;font-size:12px;background:transparent;outline:none;padding:2px}
+.add-row-btn{font-size:11px;padding:3px 10px;margin-top:4px;border:1px dashed #888;background:#fafafa;cursor:pointer;border-radius:3px}
+.yn-group{display:flex;gap:8px;align-items:center}
+.yn-group label{display:flex;align-items:center;gap:3px;font-size:13px;cursor:pointer}
+.declaration-box{border:1px solid #bbb;padding:10px;font-size:11px;line-height:1.7;background:#fafafa;margin-bottom:12px;max-height:150px;overflow-y:auto}
+.sig-canvas{border:1px solid #aaa;background:#fff;display:block;width:100%;height:100px;touch-action:none;cursor:crosshair}
+.sig-btns{display:flex;gap:8px;margin-top:4px}
+.sig-btns button{font-size:11px;padding:3px 10px;border:1px solid #aaa;background:#fff;cursor:pointer;border-radius:3px}
+.office-box{background:#f9f9f9;border:1px solid #ccc;padding:12px;margin-top:10px;border-radius:4px}
+.action-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding-top:14px;border-top:2px solid #ddd;align-items:center}
+.btn-action{padding:8px 14px;border-radius:4px;border:none;cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
+.btn-drive{background:#1a7340;color:#fff}
+.btn-load{background:#1565c0;color:#fff}
+.btn-print{background:#555;color:#fff}
+.btn-draft{background:#e65100;color:#fff}
+.btn-action:hover{opacity:.88}
+.autosave-status{font-size:11px;color:#888;margin-left:auto}
+.page-break{border-top:2px dashed #ccc;margin:20px 0;padding-top:10px}
+.info-label{font-size:11px;font-weight:600;min-width:110px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
+.modal-bg.active{display:flex}
+.modal-inner{background:#fff;border-radius:8px;padding:24px;width:380px;max-width:95vw;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.modal-inner h3{font-size:15px;margin-bottom:14px;border-bottom:1px solid #eee;padding-bottom:8px}
+.modal-inner label{font-size:12px;color:#555;font-weight:600;display:block;margin-bottom:2px}
+.modal-inner input,.modal-inner select{width:100%;border:1px solid #ccc;padding:7px;border-radius:4px;font-size:13px;margin-bottom:12px;display:block}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
+.modal-btns button{padding:7px 16px;border-radius:4px;border:none;cursor:pointer;font-size:13px}
+.btn-cancel{background:#eee}
+.btn-confirm{background:#1a7340;color:#fff}
+.btn-confirm-blue{background:#1565c0;color:#fff}
+.dob-auto{font-size:10px;color:#1a7340;margin-top:2px;font-style:italic}
+@media print{
+  .action-bar,.photo-btns,.add-row-btn,.sig-btns,.modal-bg{display:none!important}
+  body{background:#fff}
+  .form-wrap{box-shadow:none;padding:0}
+}
+</style>
+</head>
+<body>
+<div class="form-wrap" id="appForm">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo-area">
+    <div style="display:flex;align-items:center;gap:10px">
+      <img id="companyLogo" style="height:70px;width:auto;object-fit:contain" alt="MyEden Logo">
+      <div>
+        <h1>My<span>Eden</span> Group Sdn. Bhd.</h1>
+        <p style="font-size:10px;color:#555;margin-top:2px">No 14A, Jalan Indah 15/1, Taman Bukit Indah, 81200, Johor Bahru, Johor<br>
+        Tel: +6016-219 1170 | Email: myeden.group@gmail.com<br>
+        Company Registration: 201901034872 (1344202-X)</p>
+        <p style="margin-top:4px;font-size:12px;font-style:italic;color:#2e7d32">play. learn. grow.</p>
+      </div>
+    </div>
+    <h2 style="margin-top:10px;font-size:18px">Employment Application</h2>
+    <p style="font-size:11px;color:#555">We are an equal opportunity employer</p>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:4px">
+    <div class="photo-box" id="photoBox">
+      <span class="ph-label">Passport<br>Size<br>Photo<br><small>(click to upload)</small></span>
+    </div>
+    <div class="photo-btns">
+      <button type="button" id="btnCamera">Camera</button>
+      <button type="button" id="btnGallery">Gallery</button>
+      <button type="button" onclick="removePhoto()">Clear</button>
+    </div>
+    <input type="file" id="photoInput" accept="image/*" style="display:none">
+  </div>
+</div>
+
+<!-- REF + DATE -->
+<div class="form-row">
+  <div class="form-group" style="flex:2"><label>REF: MEG-EAF-v.2026.06</label></div>
+  <div class="form-group" style="flex:1">
+    <label>Date of Application <span style="color:red">*</span></label>
+    <input type="date" id="appDate" required>
+  </div>
+</div>
+
+<!-- PERSONAL INFORMATION -->
+<div class="section-title">Personal Information</div>
+<div class="form-row">
+  <div class="form-group"><label>Full Name (Chinese)</label><input type="text" id="nameChinese" placeholder="中文姓名"></div>
+  <div class="form-group"><label>Full Name (English)</label><input type="text" id="nameEnglish" placeholder="As per IC/Passport"></div>
+</div>
+
+<div class="form-row">
+  <div class="form-group" style="flex:2">
+    <label>I/C No</label>
+    <div style="display:flex;gap:4px;align-items:center">
+      <input type="text" id="ic1" maxlength="6" placeholder="YYMMDD" style="width:80px" oninput="this.value=this.value.replace(/\D/g,'');extractDOB()">
+      <span>-</span>
+      <input type="text" id="ic2" maxlength="2" placeholder="XX" style="width:40px" oninput="this.value=this.value.replace(/\D/g,'')">
+      <span>-</span>
+      <input type="text" id="ic3" maxlength="4" placeholder="XXXX" style="width:55px" oninput="this.value=this.value.replace(/\D/g,'')">
+    </div>
+    <span class="dob-auto" id="dobHint"></span>
+  </div>
+  <div class="form-group"><label>Passport No</label><input type="text" id="passport" oninput="checkPassport()"></div>
+</div>
+
+<div class="radio-row">
+  <label class="info-label">Gender</label>
+  <div class="radio-group">
+    <label><input type="radio" name="gender" value="Male"> Male</label>
+    <label><input type="radio" name="gender" value="Female"> Female</label>
+  </div>
+  <label class="info-label" style="margin-left:20px">Date of Birth</label>
+  <div style="display:flex;flex-direction:column">
+    <input type="date" id="dob" style="border:none;border-bottom:1px solid #555;padding:3px;font-size:13px">
+    <span class="dob-auto" id="dobSource"></span>
+  </div>
+</div>
+
+<div class="radio-row">
+  <label class="info-label">Marital Status</label>
+  <div class="radio-group">
+    <label><input type="radio" name="marital" value="Single"> Single</label>
+    <label><input type="radio" name="marital" value="Married"> Married</label>
+  </div>
+  <label class="info-label" style="margin-left:20px">No of Children</label>
+  <input type="number" id="children" min="0" style="width:60px;border:none;border-bottom:1px solid #555;padding:3px;font-size:13px">
+</div>
+
+<div class="radio-row">
+  <label class="info-label">Race</label>
+  <div class="radio-group">
+    <label><input type="radio" name="race" value="Chinese"> Chinese</label>
+    <label><input type="radio" name="race" value="Malay"> Malay</label>
+    <label><input type="radio" name="race" value="Indian"> Indian</label>
+    <label><input type="radio" name="race" value="Others"> Others: <input type="text" id="raceOther" style="width:80px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
+  </div>
+</div>
+
+<div class="radio-row">
+  <label class="info-label">Religion</label>
+  <div class="radio-group">
+    <label><input type="radio" name="religion" value="Christian"> Christian</label>
+    <label><input type="radio" name="religion" value="Buddhist"> Buddhist</label>
+    <label><input type="radio" name="religion" value="Hindu"> Hindu</label>
+    <label><input type="radio" name="religion" value="Muslim"> Muslim</label>
+    <label><input type="radio" name="religion" value="Others"> Others: <input type="text" id="religionOther" style="width:80px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
+  </div>
+</div>
+
+<div class="form-row">
+  <div class="form-group"><label>Residential Address</label><input type="text" id="address" placeholder="Full address"></div>
+</div>
+<div class="form-row">
+  <div class="form-group"><label>Contact No</label><input type="tel" id="contact"></div>
+  <div class="form-group"><label>E-mail</label><input type="email" id="email"></div>
+</div>
+
+<!-- FAMILY INFORMATION -->
+<div class="section-title">Family Information</div>
+<table><thead><tr><th style="width:40px">No</th><th>Name</th><th style="width:50px">Age</th><th>Status (Study/Work)</th><th>Relationship</th></tr></thead>
+<tbody id="familyBody"></tbody></table>
+<button class="add-row-btn" onclick="addFamilyRow()">+ Add family member</button>
+
+<!-- ACADEMIC ACHIEVEMENTS -->
+<div class="section-title">Academic Achievements</div>
+<table><thead><tr><th style="width:40px">No</th><th>Academic Level</th><th>School / College / University</th><th>Location</th><th style="width:60px">From</th><th style="width:60px">To</th><th style="width:70px">Graduated</th></tr></thead>
+<tbody id="academicBody"></tbody></table>
+<button class="add-row-btn" onclick="addAcademicRow()">+ Add qualification</button>
+
+<!-- JOB REQUIREMENTS -->
+<div class="section-title">Job Requirements</div>
+<div class="radio-row">
+  <label class="info-label">Intended Post</label>
+  <div class="cb-group">
+    <label><input type="checkbox" name="post" value="Childcare Mentor"> Childcare Mentor</label>
+    <label><input type="checkbox" name="post" value="Kindergarten Teacher"> Kindergarten Teacher</label>
+    <label><input type="checkbox" name="post" value="Infant Childcare Mentor"> Infant Childcare Mentor</label>
+    <label><input type="checkbox" name="post" value="Office"> Office</label>
+    <label><input type="checkbox" name="post" value="Others"> Others: <input type="text" id="postOther" style="width:100px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
+  </div>
+</div>
+<div class="radio-row">
+  <label class="info-label">Desired Working Hour</label>
+  <div class="cb-group">
+    <label><input type="checkbox" name="workhour" value="Full/Part Time"> Full/Part Time</label>
+    <label><input type="checkbox" name="workhour" value="Internship/Temporary"> Internship/Temporary</label>
+    <label>Working Hour: <input type="text" id="workingHour" style="width:80px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
+    <label><input type="checkbox" name="workhour" value="Temporary"> Temporary</label>
+    <label>Others: <input type="text" id="workHourOther" style="width:100px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
+  </div>
+</div>
+<div class="form-row">
+  <div class="form-group"><label>Date Available to Start</label><input type="date" id="startDate"></div>
+  <div class="form-group"><label>Expected Salary (RM)</label><input type="number" id="salary" placeholder="0.00"></div>
+</div>
+<div class="radio-row">
+  <label class="info-label">Spoken Language</label>
+  <div class="cb-group">
+    <label><input type="checkbox" name="spoken" value="Chinese"> Chinese</label>
+    <label><input type="checkbox" name="spoken" value="English"> English</label>
+    <label><input type="checkbox" name="spoken" value="Malay"> Malay</label>
+    <label>Others: <input type="text" id="spokenOther" style="width:100px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
+  </div>
+</div>
+<div class="radio-row">
+  <label class="info-label">Written Language</label>
+  <div class="cb-group">
+    <label><input type="checkbox" name="written" value="Chinese"> Chinese</label>
+    <label><input type="checkbox" name="written" value="English"> English</label>
+    <label><input type="checkbox" name="written" value="Malay"> Malay</label>
+    <label>Others: <input type="text" id="writtenOther" style="width:100px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
+  </div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page-break"></div>
+<div class="section-title">Special Skills</div>
+<div class="form-group" style="margin-bottom:10px">
+  <label>Do you have any special skill?</label>
+  <textarea id="specialSkills" placeholder="List your special skills..."></textarea>
+</div>
+
+<div class="section-title">Work Experience</div>
+<div id="workExpContainer"></div>
+<button class="add-row-btn" onclick="addWorkExp()">+ Add more experience</button>
+
+<div class="section-title" style="margin-top:14px">Other Details</div>
+<table style="margin-bottom:10px">
+  <tbody>
+    <tr><td style="padding:6px 8px">1. Are you an undischarged bankrupt?</td><td style="width:120px;text-align:center"><div class="yn-group" style="justify-content:center"><label><input type="radio" name="q1" value="Yes"> Yes</label><label><input type="radio" name="q1" value="No"> No</label></div></td></tr>
+    <tr><td style="padding:6px 8px">2. Have you ever been convicted of any criminal offence?</td><td style="text-align:center"><div class="yn-group" style="justify-content:center"><label><input type="radio" name="q2" value="Yes"> Yes</label><label><input type="radio" name="q2" value="No"> No</label></div></td></tr>
+    <tr><td style="padding:6px 8px">3. Have you suffered or are suffering from any serious illness?</td><td style="text-align:center"><div class="yn-group" style="justify-content:center"><label><input type="radio" name="q3" value="Yes"> Yes</label><label><input type="radio" name="q3" value="No"> No</label></div></td></tr>
+    <tr><td style="padding:6px 8px">4. Do you suffer from any physical handicap?</td><td style="text-align:center"><div class="yn-group" style="justify-content:center"><label><input type="radio" name="q4" value="Yes"> Yes</label><label><input type="radio" name="q4" value="No"> No</label></div></td></tr>
+  </tbody>
+</table>
+<div class="form-group" style="margin-bottom:10px">
+  <label>If you ticked 'Yes' for any of the above, please provide details:</label>
+  <textarea id="yesDetails" placeholder="Provide details here..."></textarea>
+</div>
+<div class="form-group" style="margin-bottom:10px">
+  <label>Do you have any family/relatives/friends currently employed by MyEden Group Sdn Bhd? If yes:</label>
+  <div class="form-row" style="margin-top:6px">
+    <div class="form-group"><label>Name</label><input type="text" id="relName"></div>
+    <div class="form-group"><label>Relationship</label><input type="text" id="relRelationship"></div>
+    <div class="form-group"><label>Department</label><input type="text" id="relDept"></div>
+    <div class="form-group"><label>Job Title</label><input type="text" id="relJobTitle"></div>
+  </div>
+</div>
+<div class="radio-row">
+  <label class="info-label">How did you know about this vacancy?</label>
+  <div class="cb-group">
+    <label><input type="checkbox" name="source" value="Advertisement"> Advertisement</label>
+    <label><input type="checkbox" name="source" value="Friends/Relatives"> Friends/Relatives</label>
+    <label><input type="checkbox" name="source" value="Employment Agency"> Employment Agency</label>
+    <label><input type="checkbox" name="source" value="Other Sources"> Other Sources</label>
+  </div>
+</div>
+
+<!-- PAGE 3 -->
+<div class="page-break"></div>
+<div class="section-title">Declaration</div>
+<div class="declaration-box">
+  <p style="font-weight:700;margin-bottom:8px">PLEASE READ CAREFULLY</p>
+  <p>I hereby declare that all information given by me to the foregoing questions and all statements made by me in this application form are correct and to the best of my knowledge and belief. If there is any false declaration made in this application form, Myeden Group Sdn Bhd ("the Company") has the absolute right to terminate my employment immediately.</p><br>
+  <p>I hereby consent and authorise the Company to make reference and contact all my past employers on my job performance. However, reference to my current employer may only be made with my prior permission so long as I am still in their employment.</p><br>
+  <p>In accordance with Personal Data Protection Act 2010, I hereby consent and authorise the Company to collect, use and process my personal data for the purpose in relation to my job application and employment with the Company and use my information given herein to contact me directly.</p><br>
+  <p>Additionally, the information provided by you to the Company may become part of our resume database. In this instance, the use of such information by the Company will be subject to the Company's privacy policy. By submitting this employment application form to us, I hereby agree and consent for the Company to collect, use and process my personal data in the manner as identified above.</p>
+</div>
+
+<div style="margin-bottom:14px;padding:10px;border:1.5px solid #bbb;border-radius:4px;background:#fffde7">
+  <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px">
+    <input type="checkbox" id="declAgree" style="margin-top:2px;width:16px;height:16px;flex-shrink:0;accent-color:#1a7340">
+    <span>I have read and fully understood the above declaration. I hereby confirm that all information provided is true and correct, and I consent to the collection and use of my personal data as stated above. <span style="color:red;font-weight:700">*</span></span>
+  </label>
+  <div id="declWarn" style="display:none;color:red;font-size:11px;margin-top:6px;margin-left:26px">⚠ You must acknowledge the declaration before submitting.</div>
+</div>
+
+<div class="form-row" style="margin-bottom:12px">
+  <div class="form-group"><label>Name (Applicant)</label><input type="text" id="declName"></div>
+  <div class="form-group"><label>Date</label><input type="date" id="declDate"></div>
+</div>
+<div class="form-group" style="margin-bottom:8px">
+  <label>Signature (draw below)</label>
+  <canvas id="sigCanvas" class="sig-canvas"></canvas>
+  <div class="sig-btns"><button onclick="clearSig()">Clear Signature</button></div>
+</div>
+
+<div class="office-box">
+  <div class="section-title">For Office Use Only</div>
+  <div class="form-row">
+    <div class="form-group"><label>Interviewed by</label><input type="text" id="interviewedBy"></div>
+    <div class="form-group"><label>Decision</label>
+      <select id="decision"><option value="">-- Select --</option><option>Approved</option><option>Disapproved</option><option>KIV</option><option>Others</option></select>
+    </div>
+    <div class="form-group"><label>Final Approved Salary (RM)</label><input type="number" id="finalSalary"></div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Working Hours</label><input type="text" id="finalHours"></div>
+    <div class="form-group"><label>Start Date</label><input type="date" id="finalStart"></div>
+    <div class="form-group"><label>Department</label><input type="text" id="finalDept"></div>
+  </div>
+  <div class="radio-row" style="margin-bottom:8px">
+    <label class="info-label">Documentation</label>
+    <div class="cb-group">
+      <label><input type="checkbox" name="doc" value="IC"> Photocopy of IC</label>
+      <label><input type="checkbox" name="doc" value="BankAcc"> Personal Bank A/C</label>
+      <label><input type="checkbox" name="doc" value="Certs"> Relevant Certs</label>
+      <label>Others: <input type="text" id="docOther" style="width:120px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
+    </div>
+  </div>
+  <div class="form-group"><label>Comments</label><textarea id="officeComments" style="min-height:50px"></textarea></div>
+</div>
+
+<!-- NOTES PAGE -->
+<div class="page-break"></div>
+<div class="section-title" style="background:#c8e6c9;color:#1b5e20">&#128221; Interviewer / HR Notes</div>
+<div style="font-size:11px;color:#777;margin-bottom:8px">This section is for internal use. Type notes, observations, or remarks below.</div>
+<div style="background:#fffef5;border:1px solid #ddd;border-radius:4px;padding:4px;position:relative">
+  <div style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden;border-radius:4px">
+    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs><pattern id="lines" width="100%" height="28" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="27" x2="100%" y2="27" stroke="#e0e0e0" stroke-width="1"/>
+      </pattern></defs>
+      <rect width="100%" height="100%" fill="url(#lines)"/>
+    </svg>
+  </div>
+  <textarea id="hrNotes" style="width:100%;min-height:320px;border:none;background:transparent;outline:none;font-size:13px;line-height:28px;padding:4px 8px;resize:vertical;position:relative;z-index:1;font-family:Arial,sans-serif" placeholder="Type notes here..."></textarea>
+</div>
+<div style="display:flex;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:8px">
+  <div class="form-group" style="flex:1;min-width:200px"><label>Noted by</label><input type="text" id="notedBy"></div>
+  <div class="form-group" style="flex:1;min-width:160px"><label>Date</label><input type="date" id="notesDate"></div>
+</div>
+
+<!-- ACTION BAR -->
+<div class="action-bar">
+  <button class="btn-action btn-draft" onclick="saveDraftLocal()">&#128190; Save Draft</button>
+  <button class="btn-action btn-load" onclick="document.getElementById('loadInput').click()">&#128194; Load Draft</button>
+  <input type="file" id="loadInput" accept=".json" style="display:none" onchange="loadDraft(event)">
+  <button class="btn-action btn-drive" onclick="openDriveModal()">&#9729; Save to Drive</button>
+  <button class="btn-action btn-print" onclick="printForm()">&#128438; Print / Save PDF</button>
+  <span class="autosave-status" id="autosaveStatus">Auto-save: waiting...</span>
+</div>
+
+</div><!-- /form-wrap -->
+
+<!-- DRIVE MODAL -->
+<div class="modal-bg" id="driveModal">
+  <div class="modal-inner">
+    <h3>&#9729; Save to Google Drive</h3>
+    <label>Google API Client ID <span style="color:red">*</span></label>
+    <input type="text" id="clientIdInput" placeholder="xxxxx.apps.googleusercontent.com">
+    <label>Drive Folder ID <span style="font-weight:400;color:#888">(optional — blank = root)</span></label>
+    <input type="text" id="folderIdInput" placeholder="Paste folder ID from Drive URL">
+    <label>File Name</label>
+    <input type="text" id="fileNameInput" value="MyEden_Employment_Application">
+    <label>Save Format</label>
+    <select id="saveFormat">
+      <option value="json">Draft JSON (reloadable)</option>
+      <option value="pdf">PDF (print)</option>
+      <option value="both">Both</option>
+    </select>
+    <p style="font-size:11px;color:#888;margin-bottom:12px;line-height:1.5">First save will prompt Google login. Folder ID and Client ID are remembered for this session.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeDriveModal()">Cancel</button>
+      <button class="btn-confirm" onclick="saveToDrive()">Save to Drive</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────────────────────
+var DRIVE_CLIENT_ID = ''; // Set your Google OAuth Client ID here after setup
+var DRIVE_FOLDER_ID = ''; // Optional default folder ID
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+var photoData = null;
+var sigDrawing = false;
+var sigCtx, sigCanvas;
+var autoSaveTimer = null;
+var workExpCount = 0;
+
+// ── LOGO ───────────────────────────────────────────────────────────────────
+function loadLogo(){
+  var img = document.getElementById('companyLogo');
+  img.src = "https://i.postimg.cc/Bb15Phb1/My-Eden-Group-Logo-icon-color.png";
+  img.onerror = function(){ img.style.display='none'; };
+}
+
+// ── IC → DOB EXTRACTION ────────────────────────────────────────────────────
+function extractDOB(){
+  var ic1 = document.getElementById('ic1').value.trim();
+  var dobField = document.getElementById('dob');
+  var hint = document.getElementById('dobHint');
+  var src = document.getElementById('dobSource');
+
+  if(ic1.length !== 6){ hint.textContent=''; src.textContent=''; return; }
+
+  var yy = parseInt(ic1.substring(0,2), 10);
+  var mm = parseInt(ic1.substring(2,4), 10);
+  var dd = parseInt(ic1.substring(4,6), 10);
+
+  if(mm < 1 || mm > 12 || dd < 1 || dd > 31){ hint.textContent='⚠ Invalid date in IC'; return; }
+
+  var curYY = new Date().getFullYear() % 100;
+  var yyyy = yy <= curYY ? 2000 + yy : 1900 + yy;
+
+  var dateStr = yyyy + '-' + String(mm).padStart(2,'0') + '-' + String(dd).padStart(2,'0');
+  dobField.value = dateStr;
+  hint.textContent = '✓ DOB extracted from IC';
+  src.textContent = '(auto-filled from IC — editable)';
+}
+
+function checkPassport(){
+  var ic1 = document.getElementById('ic1').value.trim();
+  var passport = document.getElementById('passport').value.trim();
+  if(!ic1 && passport){
+    document.getElementById('dob').value = '';
+    document.getElementById('dobHint').textContent = '';
+    document.getElementById('dobSource').textContent = '(passport only — enter DOB manually if needed)';
+  }
+}
+
+// ── PHOTO UPLOAD ───────────────────────────────────────────────────────────
+function removePhoto(){
+  photoData = null;
+  var box = document.getElementById('photoBox');
+  var img = box.querySelector('img.preview');
+  if(img) img.remove();
+  box.querySelector('.ph-label').style.display = '';
+}
+
+// ── TABLE ROWS ─────────────────────────────────────────────────────────────
+function addFamilyRow(){
+  var tb = document.getElementById('familyBody');
+  var n = tb.rows.length + 1;
+  var tr = tb.insertRow();
+  tr.innerHTML = '<td><input type="text" value="'+n+'" style="width:30px"></td><td><input type="text"></td><td><input type="number" min="0" style="width:45px"></td><td><input type="text"></td><td><input type="text"></td>';
+}
+
+function addAcademicRow(){
+  var tb = document.getElementById('academicBody');
+  var n = tb.rows.length + 1;
+  var tr = tb.insertRow();
+  tr.innerHTML = '<td><input type="text" value="'+n+'" style="width:30px"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="date"></td><td><input type="date"></td><td style="text-align:center"><label style="margin-right:4px"><input type="radio" name="grad'+n+'" value="Y"> Y</label><label><input type="radio" name="grad'+n+'" value="N"> N</label></td>';
+}
+
+function addWorkExp(){
+  workExpCount++;
+  var c = document.getElementById('workExpContainer');
+  var d = document.createElement('div');
+  d.style.cssText = 'border:1px solid #ddd;padding:10px;margin-bottom:12px;border-radius:4px';
+  d.innerHTML = '<div style="font-size:11px;font-weight:700;margin-bottom:8px;color:#555">Experience '+workExpCount+'</div>'
+    +'<div class="form-row"><div class="form-group"><label>From</label><input type="date"></div><div class="form-group"><label>To</label><input type="date"></div><div class="form-group"><label>Employer</label><input type="text"></div><div class="form-group"><label>Contact No</label><input type="text"></div></div>'
+    +'<div class="form-row"><div class="form-group"><label>Job Title</label><input type="text"></div><div class="form-group"><label>Address</label><input type="text"></div></div>'
+    +'<div class="form-group" style="margin-bottom:8px"><label>Nature of work and responsibilities</label><textarea style="min-height:50px"></textarea></div>'
+    +'<div class="form-group"><label>Reason for leaving</label><input type="text"></div>';
+  c.appendChild(d);
+}
+
+// ── SIGNATURE ──────────────────────────────────────────────────────────────
+function initSig(){
+  sigCanvas = document.getElementById('sigCanvas');
+  sigCanvas.width = sigCanvas.parentElement.offsetWidth || 600;
+  sigCanvas.height = 100;
+  sigCtx = sigCanvas.getContext('2d');
+  sigCtx.strokeStyle = '#222'; sigCtx.lineWidth = 2; sigCtx.lineCap = 'round';
+
+  function pos(e){
+    var r = sigCanvas.getBoundingClientRect();
+    if(e.touches) return {x:e.touches[0].clientX-r.left, y:e.touches[0].clientY-r.top};
+    return {x:e.clientX-r.left, y:e.clientY-r.top};
+  }
+  sigCanvas.addEventListener('mousedown',function(e){sigDrawing=true;var p=pos(e);sigCtx.beginPath();sigCtx.moveTo(p.x,p.y);});
+  sigCanvas.addEventListener('mousemove',function(e){if(!sigDrawing)return;var p=pos(e);sigCtx.lineTo(p.x,p.y);sigCtx.stroke();});
+  sigCanvas.addEventListener('mouseup',function(){sigDrawing=false;});
+  sigCanvas.addEventListener('mouseleave',function(){sigDrawing=false;});
+  sigCanvas.addEventListener('touchstart',function(e){e.preventDefault();sigDrawing=true;var p=pos(e);sigCtx.beginPath();sigCtx.moveTo(p.x,p.y);},{passive:false});
+  sigCanvas.addEventListener('touchmove',function(e){e.preventDefault();if(!sigDrawing)return;var p=pos(e);sigCtx.lineTo(p.x,p.y);sigCtx.stroke();},{passive:false});
+  sigCanvas.addEventListener('touchend',function(){sigDrawing=false;});
+}
+function clearSig(){ if(sigCtx) sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height); }
+
+// ── COLLECT / RESTORE FORM DATA ────────────────────────────────────────────
+function collectFormData(){
+  var d = {};
+  // Simple fields
+  ['appDate','nameChinese','nameEnglish','ic1','ic2','ic3','passport','dob',
+   'children','raceOther','religionOther','address','contact','email',
+   'postOther','workingHour','workHourOther','startDate','salary',
+   'spokenOther','writtenOther','specialSkills','yesDetails',
+   'relName','relRelationship','relDept','relJobTitle',
+   'declName','declDate','interviewedBy','decision','finalSalary',
+   'finalHours','finalStart','finalDept','docOther','officeComments',
+   'hrNotes','notedBy','notesDate'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) d[id] = el.value;
+  });
+  // Radios
+  ['gender','marital','race','religion','q1','q2','q3','q4'].forEach(function(name){
+    var el = document.querySelector('input[name="'+name+'"]:checked');
+    d['radio_'+name] = el ? el.value : '';
+  });
+  // Checkboxes
+  ['post','workhour','spoken','written','source','doc'].forEach(function(name){
+    d['cb_'+name] = Array.from(document.querySelectorAll('input[name="'+name+'"]:checked')).map(function(el){return el.value;});
+  });
+  // Declaration checkbox
+  d['declAgree'] = document.getElementById('declAgree').checked;
+  // Photo
+  d['photoData'] = photoData || '';
+  // Signature
+  d['sigData'] = sigCanvas ? sigCanvas.toDataURL() : '';
+  // Family rows
+  d['familyRows'] = [];
+  document.querySelectorAll('#familyBody tr').forEach(function(tr){
+    d['familyRows'].push(Array.from(tr.querySelectorAll('input')).map(function(i){return i.value;}));
+  });
+  // Academic rows
+  d['academicRows'] = [];
+  document.querySelectorAll('#academicBody tr').forEach(function(tr){
+    var vals = Array.from(tr.querySelectorAll('input')).map(function(i){return i.type==='radio'?(i.checked?i.value:''):i.value;});
+    d['academicRows'].push(vals);
+  });
+  // Work exp
+  d['workExpCount'] = workExpCount;
+  d['workExpData'] = [];
+  document.querySelectorAll('#workExpContainer > div').forEach(function(block){
+    d['workExpData'].push(Array.from(block.querySelectorAll('input,textarea')).map(function(i){return i.value;}));
+  });
+  return d;
+}
+
+function restoreFormData(d){
+  ['appDate','nameChinese','nameEnglish','ic1','ic2','ic3','passport','dob',
+   'children','raceOther','religionOther','address','contact','email',
+   'postOther','workingHour','workHourOther','startDate','salary',
+   'spokenOther','writtenOther','specialSkills','yesDetails',
+   'relName','relRelationship','relDept','relJobTitle',
+   'declName','declDate','interviewedBy','decision','finalSalary',
+   'finalHours','finalStart','finalDept','docOther','officeComments',
+   'hrNotes','notedBy','notesDate'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el && d[id] !== undefined) el.value = d[id];
+  });
+  ['gender','marital','race','religion','q1','q2','q3','q4'].forEach(function(name){
+    if(d['radio_'+name]){
+      var el = document.querySelector('input[name="'+name+'"][value="'+d['radio_'+name]+'"]');
+      if(el) el.checked = true;
+    }
+  });
+  ['post','workhour','spoken','written','source','doc'].forEach(function(name){
+    if(d['cb_'+name]) d['cb_'+name].forEach(function(v){
+      var el = document.querySelector('input[name="'+name+'"][value="'+v+'"]');
+      if(el) el.checked = true;
+    });
+  });
+  if(d['declAgree']) document.getElementById('declAgree').checked = true;
+  if(d['photoData']){
+    photoData = d['photoData'];
+    var box = document.getElementById('photoBox');
+    box.querySelector('.ph-label').style.display = 'none';
+    var img = document.createElement('img');
+    img.src = photoData; img.className = 'preview';
+    box.appendChild(img);
+  }
+  // Restore work exp
+  if(d['workExpCount']){
+    document.getElementById('workExpContainer').innerHTML = '';
+    workExpCount = 0;
+    for(var i=0;i<d['workExpCount'];i++) addWorkExp();
+    document.querySelectorAll('#workExpContainer > div').forEach(function(block, bi){
+      if(d['workExpData'] && d['workExpData'][bi]){
+        Array.from(block.querySelectorAll('input,textarea')).forEach(function(el,ei){
+          el.value = d['workExpData'][bi][ei] || '';
+        });
+      }
+    });
+  }
+  // Restore sig
+  if(d['sigData'] && sigCtx){
+    var img2 = new Image();
+    img2.onload = function(){ sigCtx.drawImage(img2,0,0); };
+    img2.src = d['sigData'];
+  }
+  document.getElementById('dobSource').textContent = d['dob'] ? '(loaded from draft)' : '';
+}
+
+// ── AUTO-SAVE (session) ────────────────────────────────────────────────────
+function scheduleAutoSave(){
+  clearTimeout(autoSaveTimer);
+  document.getElementById('autosaveStatus').textContent = 'Auto-save: pending...';
+  autoSaveTimer = setTimeout(function(){
+    try{
+      sessionStorage.setItem('meg_draft', JSON.stringify(collectFormData()));
+      document.getElementById('autosaveStatus').textContent = 'Auto-saved: '+new Date().toLocaleTimeString();
+    }catch(e){ document.getElementById('autosaveStatus').textContent = 'Auto-save failed'; }
+  }, 1500);
+}
+
+// ── SAVE DRAFT (local download) ────────────────────────────────────────────
+function saveDraftLocal(){
+  var data = collectFormData();
+  var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  var name = (document.getElementById('nameEnglish').value || 'Draft').replace(/\s+/g,'_');
+  a.download = 'MEG-EAF_'+name+'_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  document.getElementById('autosaveStatus').textContent = 'Draft saved: '+new Date().toLocaleTimeString();
+}
+
+// ── LOAD DRAFT (from file) ─────────────────────────────────────────────────
+function loadDraft(event){
+  var file = event.target.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var data = JSON.parse(e.target.result);
+      restoreFormData(data);
+      document.getElementById('autosaveStatus').textContent = 'Draft loaded: '+file.name;
+    }catch(err){
+      alert('Could not load draft. Please make sure it is a valid MEG draft JSON file.');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ── DECLARATION CHECK ──────────────────────────────────────────────────────
+function checkDecl(){
+  var cb = document.getElementById('declAgree');
+  var warn = document.getElementById('declWarn');
+  if(!cb.checked){ warn.style.display='block'; cb.focus(); return false; }
+  warn.style.display = 'none'; return true;
+}
+
+// ── DRIVE MODAL ────────────────────────────────────────────────────────────
+function openDriveModal(){
+  if(!checkDecl()) return;
+  // Pre-fill saved settings
+  if(DRIVE_CLIENT_ID) document.getElementById('clientIdInput').value = DRIVE_CLIENT_ID;
+  if(DRIVE_FOLDER_ID) document.getElementById('folderIdInput').value = DRIVE_FOLDER_ID;
+  document.getElementById('driveModal').classList.add('active');
+}
+function closeDriveModal(){ document.getElementById('driveModal').classList.remove('active'); }
+
+function saveToDrive(){
+  var clientId = document.getElementById('clientIdInput').value.trim();
+  if(!clientId){
+    alert('Please enter your Google API Client ID.\n\nSetup guide:\n1. console.cloud.google.com\n2. New Project → Enable Google Drive API\n3. Credentials → OAuth 2.0 Client ID\n4. Paste Client ID here');
+    return;
+  }
+  DRIVE_CLIENT_ID = clientId;
+  DRIVE_FOLDER_ID = document.getElementById('folderIdInput').value.trim();
+  var fmt = document.getElementById('saveFormat').value;
+  closeDriveModal();
+
+  if(fmt === 'pdf' || fmt === 'both'){ if(checkDecl()) window.print(); }
+  if(fmt === 'json' || fmt === 'both'){
+    // Once Client ID is configured and app is on GitHub Pages,
+    // this will authenticate via Google OAuth and upload to Drive.
+    // For now, fallback to local download with instructions.
+    saveDraftLocal();
+    alert('✓ Draft saved locally.\n\nTo enable direct Google Drive upload:\n1. Complete Google Cloud setup (see guide)\n2. Deploy to GitHub Pages\n3. Add your GitHub Pages URL to OAuth origins\n4. The Drive upload will work automatically.');
+  }
+}
+
+function printForm(){ if(checkDecl()) window.print(); }
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+window.onload = function(){
+  loadLogo();
+
+  // Today's date
+  var t = new Date();
+  document.getElementById('appDate').value = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+
+  // Photo buttons
+  var photoInput = document.getElementById('photoInput');
+  document.getElementById('btnCamera').addEventListener('click',function(){
+    photoInput.setAttribute('capture','user'); photoInput.click();
+  });
+  document.getElementById('btnGallery').addEventListener('click',function(){
+    photoInput.removeAttribute('capture'); photoInput.click();
+  });
+  photoInput.addEventListener('change',function(e){
+    var file = e.target.files[0]; if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      photoData = ev.target.result;
+      var box = document.getElementById('photoBox');
+      box.querySelector('.ph-label').style.display = 'none';
+      var old = box.querySelector('img.preview'); if(old) old.remove();
+      var img = document.createElement('img');
+      img.src = photoData; img.className = 'preview';
+      box.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+    photoInput.value = '';
+  });
+
+  // Pre-populate rows
+  addFamilyRow(); addFamilyRow(); addFamilyRow();
+  addAcademicRow(); addAcademicRow(); addAcademicRow();
+  addWorkExp(); addWorkExp();
+
+  // Signature
+  setTimeout(initSig, 150);
+
+  // Auto-save on input
+  document.getElementById('appForm').addEventListener('input', scheduleAutoSave);
+  document.getElementById('appForm').addEventListener('change', scheduleAutoSave);
+};
+</script>
+</body>
+</html>
