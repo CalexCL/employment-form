@@ -22,7 +22,7 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#222;background:#f5f5f5}
 .form-group input,.form-group select,.form-group textarea{border:none;border-bottom:1px solid #555;padding:3px 0;font-size:13px;background:transparent;outline:none;width:100%}
 .form-group textarea{border:1px solid #aaa;padding:6px;resize:vertical;border-radius:3px;min-height:60px}
 .radio-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:8px}
-.radio-row label{font-size:13px;font-weight:600;min-width:110px}
+.radio-row>label{font-size:13px;font-weight:600;min-width:110px}
 .radio-group{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .radio-group label,.cb-group label{display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;font-weight:400}
 .cb-group{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -37,20 +37,26 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
 .sig-canvas{border:1px solid #aaa;background:#fff;display:block;width:100%;height:100px;touch-action:none;cursor:crosshair}
 .sig-btns{display:flex;gap:8px;margin-top:4px}
 .sig-btns button{font-size:11px;padding:3px 10px;border:1px solid #aaa;background:#fff;cursor:pointer;border-radius:3px}
-.office-box{background:#f9f9f9;border:1px solid #ccc;padding:12px;margin-top:10px;border-radius:4px}
+.office-box{background:#f9f9f9;border:1px solid #ccc;padding:12px;margin-top:10px;border-radius:4px;position:relative}
+.office-overlay{position:absolute;inset:0;background:rgba(240,240,240,.85);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;cursor:not-allowed}
+.office-overlay .lock-icon{font-size:32px;margin-bottom:8px}
+.office-overlay p{font-size:12px;color:#555;text-align:center;font-weight:600}
 .action-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding-top:14px;border-top:2px solid #ddd;align-items:center}
 .btn-action{padding:8px 14px;border-radius:4px;border:none;cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px}
 .btn-drive{background:#1a7340;color:#fff}
 .btn-load{background:#1565c0;color:#fff}
 .btn-print{background:#555;color:#fff}
 .btn-draft{background:#e65100;color:#fff}
+.btn-admin{background:#6a1b9a;color:#fff}
+.btn-pdf{background:#37474f;color:#fff}
 .btn-action:hover{opacity:.88}
-.autosave-status{font-size:11px;color:#888;margin-left:auto}
+.btn-action:disabled{opacity:.4;cursor:not-allowed}
+.autosave-status{font-size:11px;color:#888}
+.admin-badge{font-size:11px;background:#1b5e20;color:#fff;padding:3px 10px;border-radius:12px;font-weight:600;display:none;align-items:center;gap:5px}
 .page-break{border-top:2px dashed #ccc;margin:20px 0;padding-top:10px}
-.info-label{font-size:11px;font-weight:600;min-width:110px}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
 .modal-bg.active{display:flex}
-.modal-inner{background:#fff;border-radius:8px;padding:24px;width:380px;max-width:95vw;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.modal-inner{background:#fff;border-radius:8px;padding:24px;width:400px;max-width:95vw;box-shadow:0 4px 20px rgba(0,0,0,.2)}
 .modal-inner h3{font-size:15px;margin-bottom:14px;border-bottom:1px solid #eee;padding-bottom:8px}
 .modal-inner label{font-size:12px;color:#555;font-weight:600;display:block;margin-bottom:2px}
 .modal-inner input,.modal-inner select{width:100%;border:1px solid #ccc;padding:7px;border-radius:4px;font-size:13px;margin-bottom:12px;display:block}
@@ -59,9 +65,15 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
 .btn-cancel{background:#eee}
 .btn-confirm{background:#1a7340;color:#fff}
 .btn-confirm-blue{background:#1565c0;color:#fff}
+.btn-confirm-purple{background:#6a1b9a;color:#fff}
+.err-box{display:none;background:#ffebee;border:1px solid #ef9a9a;border-radius:4px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#c62828;line-height:1.7}
+.field-err{border-bottom:2px solid #e53935!important;background:rgba(229,57,53,.06)!important}
+.field-err-cb{outline:2px solid #e53935;border-radius:3px}
+.time-range{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.time-range input[type=time]{border:none;border-bottom:1px solid #555;padding:3px;font-size:13px;background:transparent;outline:none}
 .dob-auto{font-size:10px;color:#1a7340;margin-top:2px;font-style:italic}
 @media print{
-  .action-bar,.photo-btns,.add-row-btn,.sig-btns,.modal-bg{display:none!important}
+  .action-bar,.photo-btns,.add-row-btn,.sig-btns,.modal-bg,.office-overlay,.admin-badge{display:none!important}
   body{background:#fff}
   .form-wrap{box-shadow:none;padding:0}
 }
@@ -99,6 +111,9 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
   </div>
 </div>
 
+<!-- ERROR BOX -->
+<div class="err-box" id="errBox"></div>
+
 <!-- REF + DATE -->
 <div class="form-row">
   <div class="form-group" style="flex:2">
@@ -115,12 +130,11 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
 <div class="section-title">Personal Information</div>
 <div class="form-row">
   <div class="form-group"><label>Full Name (Chinese)</label><input type="text" id="nameChinese" placeholder="中文姓名"></div>
-  <div class="form-group"><label>Full Name (English)</label><input type="text" id="nameEnglish" placeholder="As per IC/Passport"></div>
+  <div class="form-group"><label>Full Name (English) <span style="color:red">*</span></label><input type="text" id="nameEnglish" placeholder="As per IC/Passport"></div>
 </div>
-
 <div class="form-row">
   <div class="form-group" style="flex:2">
-    <label>I/C No</label>
+    <label>I/C No <span style="color:red">*</span> <span style="font-weight:400;color:#888">(or Passport)</span></label>
     <div style="display:flex;gap:4px;align-items:center">
       <input type="text" id="ic1" maxlength="6" placeholder="YYMMDD" style="width:80px" oninput="this.value=this.value.replace(/\D/g,'');extractDOB()">
       <span>-</span>
@@ -132,43 +146,40 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
   </div>
   <div class="form-group"><label>Passport No</label><input type="text" id="passport" oninput="checkPassport()"></div>
 </div>
-
 <div class="radio-row">
-  <label class="info-label">Gender</label>
-  <div class="radio-group">
+  <label>Gender <span style="color:red">*</span></label>
+  <div class="radio-group" id="genderGroup">
     <label><input type="radio" name="gender" value="Male"> Male</label>
     <label><input type="radio" name="gender" value="Female"> Female</label>
   </div>
-  <label class="info-label" style="margin-left:20px">Date of Birth</label>
+  <label style="margin-left:20px">Date of Birth <span style="color:red" id="dobStar"></span></label>
   <div style="display:flex;flex-direction:column">
     <input type="date" id="dob" style="border:none;border-bottom:1px solid #555;padding:3px;font-size:13px">
     <span class="dob-auto" id="dobSource"></span>
   </div>
 </div>
-
 <div class="radio-row">
-  <label class="info-label">Marital Status</label>
-  <div class="radio-group">
+  <label>Marital Status <span style="color:red">*</span></label>
+  <div class="radio-group" id="maritalGroup">
     <label><input type="radio" name="marital" value="Single"> Single</label>
     <label><input type="radio" name="marital" value="Married"> Married</label>
+    <label><input type="radio" name="marital" value="Others"> Others: <input type="text" id="maritalOther" style="width:80px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
   </div>
-  <label class="info-label" style="margin-left:20px">No of Children</label>
+  <label style="margin-left:20px">No of Children</label>
   <input type="number" id="children" min="0" style="width:60px;border:none;border-bottom:1px solid #555;padding:3px;font-size:13px">
 </div>
-
 <div class="radio-row">
-  <label class="info-label">Race</label>
-  <div class="radio-group">
+  <label>Race <span style="color:red">*</span></label>
+  <div class="radio-group" id="raceGroup">
     <label><input type="radio" name="race" value="Chinese"> Chinese</label>
     <label><input type="radio" name="race" value="Malay"> Malay</label>
     <label><input type="radio" name="race" value="Indian"> Indian</label>
     <label><input type="radio" name="race" value="Others"> Others: <input type="text" id="raceOther" style="width:80px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
   </div>
 </div>
-
 <div class="radio-row">
-  <label class="info-label">Religion</label>
-  <div class="radio-group">
+  <label>Religion <span style="color:red">*</span></label>
+  <div class="radio-group" id="religionGroup">
     <label><input type="radio" name="religion" value="Christian"> Christian</label>
     <label><input type="radio" name="religion" value="Buddhist"> Buddhist</label>
     <label><input type="radio" name="religion" value="Hindu"> Hindu</label>
@@ -176,32 +187,31 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
     <label><input type="radio" name="religion" value="Others"> Others: <input type="text" id="religionOther" style="width:80px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
   </div>
 </div>
-
 <div class="form-row">
-  <div class="form-group"><label>Residential Address</label><input type="text" id="address" placeholder="Full address"></div>
+  <div class="form-group"><label>Residential Address <span style="color:red">*</span></label><input type="text" id="address" placeholder="Full address"></div>
 </div>
 <div class="form-row">
-  <div class="form-group"><label>Contact No</label><input type="tel" id="contact"></div>
-  <div class="form-group"><label>E-mail</label><input type="email" id="email"></div>
+  <div class="form-group"><label>Contact No <span style="color:red">*</span></label><input type="tel" id="contact"></div>
+  <div class="form-group"><label>E-mail <span style="color:red">*</span></label><input type="email" id="email"></div>
 </div>
 
 <!-- FAMILY INFORMATION -->
 <div class="section-title">Family Information</div>
-<table><thead><tr><th style="width:40px">No</th><th>Name</th><th style="width:50px">Age</th><th>Status (Study/Work)</th><th>Relationship</th></tr></thead>
+<table><thead><tr><th style="width:40px">No</th><th>Name <span style="font-weight:400;color:#888;font-size:10px">(if none, type N/A)</span></th><th style="width:50px">Age</th><th>Status (Study/Work)</th><th>Relationship</th></tr></thead>
 <tbody id="familyBody"></tbody></table>
 <button class="add-row-btn" onclick="addFamilyRow()">+ Add family member</button>
 
 <!-- ACADEMIC ACHIEVEMENTS -->
 <div class="section-title">Academic Achievements</div>
-<table><thead><tr><th style="width:40px">No</th><th>Academic Level</th><th>School / College / University</th><th>Location</th><th style="width:60px">From</th><th style="width:60px">To</th><th style="width:70px">Graduated</th></tr></thead>
+<table><thead><tr><th style="width:40px">No</th><th>Academic Level <span style="font-weight:400;color:#888;font-size:10px">(if none, type N/A)</span></th><th>School / College / University</th><th>Location</th><th style="width:60px">From</th><th style="width:60px">To</th><th style="width:70px">Graduated</th></tr></thead>
 <tbody id="academicBody"></tbody></table>
 <button class="add-row-btn" onclick="addAcademicRow()">+ Add qualification</button>
 
 <!-- JOB REQUIREMENTS -->
 <div class="section-title">Job Requirements</div>
 <div class="radio-row">
-  <label class="info-label">Intended Post</label>
-  <div class="cb-group">
+  <label>Intended Post <span style="color:red">*</span></label>
+  <div class="cb-group" id="postGroup">
     <label><input type="checkbox" name="post" value="Childcare Mentor"> Childcare Mentor</label>
     <label><input type="checkbox" name="post" value="Kindergarten Teacher"> Kindergarten Teacher</label>
     <label><input type="checkbox" name="post" value="Infant Childcare Mentor"> Infant Childcare Mentor</label>
@@ -210,22 +220,31 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
   </div>
 </div>
 <div class="radio-row">
-  <label class="info-label">Desired Working Hour</label>
-  <div class="cb-group">
-    <label><input type="checkbox" name="workhour" value="Full/Part Time"> Full/Part Time</label>
-    <label><input type="checkbox" name="workhour" value="Internship/Temporary"> Internship/Temporary</label>
-    <label>Working Hour: <input type="text" id="workingHour" style="width:80px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
+  <label>Desired Working Hour <span style="color:red">*</span></label>
+  <div class="cb-group" id="workhourGroup">
+    <label><input type="checkbox" name="workhour" value="Full Time"> Full Time</label>
+    <label><input type="checkbox" name="workhour" value="Part Time"> Part Time</label>
+    <label><input type="checkbox" name="workhour" value="Internship"> Internship</label>
     <label><input type="checkbox" name="workhour" value="Temporary"> Temporary</label>
-    <label>Others: <input type="text" id="workHourOther" style="width:100px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
+    <label><input type="checkbox" name="workhour" value="Others"> Others: <input type="text" id="workHourOther" style="width:80px;border:none;border-bottom:1px solid #555;margin-left:4px"></label>
   </div>
 </div>
 <div class="form-row">
+  <div class="form-group">
+    <label>Working Hours <span style="color:red">*</span></label>
+    <div class="time-range">
+      <span>From:</span><input type="time" id="workFrom">
+      <span>To:</span><input type="time" id="workTo">
+    </div>
+  </div>
   <div class="form-group"><label>Date Available to Start</label><input type="date" id="startDate"></div>
-  <div class="form-group"><label>Expected Salary (RM)</label><input type="number" id="salary" placeholder="0.00"></div>
+</div>
+<div class="form-row">
+  <div class="form-group"><label>Expected Salary (RM) <span style="color:red">*</span></label><input type="number" id="salary" placeholder="0.00"></div>
 </div>
 <div class="radio-row">
-  <label class="info-label">Spoken Language</label>
-  <div class="cb-group">
+  <label>Spoken Language <span style="color:red">*</span></label>
+  <div class="cb-group" id="spokenGroup">
     <label><input type="checkbox" name="spoken" value="Chinese"> Chinese</label>
     <label><input type="checkbox" name="spoken" value="English"> English</label>
     <label><input type="checkbox" name="spoken" value="Malay"> Malay</label>
@@ -233,8 +252,8 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
   </div>
 </div>
 <div class="radio-row">
-  <label class="info-label">Written Language</label>
-  <div class="cb-group">
+  <label>Written Language <span style="color:red">*</span></label>
+  <div class="cb-group" id="writtenGroup">
     <label><input type="checkbox" name="written" value="Chinese"> Chinese</label>
     <label><input type="checkbox" name="written" value="English"> English</label>
     <label><input type="checkbox" name="written" value="Malay"> Malay</label>
@@ -254,13 +273,13 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
 <div id="workExpContainer"></div>
 <button class="add-row-btn" onclick="addWorkExp()">+ Add more experience</button>
 
-<div class="section-title" style="margin-top:14px">Other Details</div>
+<div class="section-title" style="margin-top:14px">Other Details <span style="color:red;font-size:11px">(all mandatory)</span></div>
 <table style="margin-bottom:10px">
   <tbody>
-    <tr><td style="padding:6px 8px">1. Are you an undischarged bankrupt?</td><td style="width:120px;text-align:center"><div class="yn-group" style="justify-content:center"><label><input type="radio" name="q1" value="Yes"> Yes</label><label><input type="radio" name="q1" value="No"> No</label></div></td></tr>
-    <tr><td style="padding:6px 8px">2. Have you ever been convicted of any criminal offence?</td><td style="text-align:center"><div class="yn-group" style="justify-content:center"><label><input type="radio" name="q2" value="Yes"> Yes</label><label><input type="radio" name="q2" value="No"> No</label></div></td></tr>
-    <tr><td style="padding:6px 8px">3. Have you suffered or are suffering from any serious illness?</td><td style="text-align:center"><div class="yn-group" style="justify-content:center"><label><input type="radio" name="q3" value="Yes"> Yes</label><label><input type="radio" name="q3" value="No"> No</label></div></td></tr>
-    <tr><td style="padding:6px 8px">4. Do you suffer from any physical handicap?</td><td style="text-align:center"><div class="yn-group" style="justify-content:center"><label><input type="radio" name="q4" value="Yes"> Yes</label><label><input type="radio" name="q4" value="No"> No</label></div></td></tr>
+    <tr><td style="padding:6px 8px">1. Are you an undischarged bankrupt?</td><td style="width:140px;text-align:center"><div class="yn-group" style="justify-content:center" id="q1Group"><label><input type="radio" name="q1" value="Yes"> Yes</label><label><input type="radio" name="q1" value="No"> No</label></div></td></tr>
+    <tr><td style="padding:6px 8px">2. Have you ever been convicted of any criminal offence?</td><td style="text-align:center"><div class="yn-group" style="justify-content:center" id="q2Group"><label><input type="radio" name="q2" value="Yes"> Yes</label><label><input type="radio" name="q2" value="No"> No</label></div></td></tr>
+    <tr><td style="padding:6px 8px">3. Have you suffered or are suffering from any serious illness?</td><td style="text-align:center"><div class="yn-group" style="justify-content:center" id="q3Group"><label><input type="radio" name="q3" value="Yes"> Yes</label><label><input type="radio" name="q3" value="No"> No</label></div></td></tr>
+    <tr><td style="padding:6px 8px">4. Do you suffer from any physical handicap?</td><td style="text-align:center"><div class="yn-group" style="justify-content:center" id="q4Group"><label><input type="radio" name="q4" value="Yes"> Yes</label><label><input type="radio" name="q4" value="No"> No</label></div></td></tr>
   </tbody>
 </table>
 <div class="form-group" style="margin-bottom:10px">
@@ -277,7 +296,7 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
   </div>
 </div>
 <div class="radio-row">
-  <label class="info-label">How did you know about this vacancy?</label>
+  <label>How did you know about this vacancy?</label>
   <div class="cb-group">
     <label><input type="checkbox" name="source" value="Advertisement"> Advertisement</label>
     <label><input type="checkbox" name="source" value="Friends/Relatives"> Friends/Relatives</label>
@@ -296,41 +315,53 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
   <p>In accordance with Personal Data Protection Act 2010, I hereby consent and authorise the Company to collect, use and process my personal data for the purpose in relation to my job application and employment with the Company and use my information given herein to contact me directly.</p><br>
   <p>Additionally, the information provided by you to the Company may become part of our resume database. In this instance, the use of such information by the Company will be subject to the Company's privacy policy. By submitting this employment application form to us, I hereby agree and consent for the Company to collect, use and process my personal data in the manner as identified above.</p>
 </div>
-
-<div style="margin-bottom:14px;padding:10px;border:1.5px solid #bbb;border-radius:4px;background:#fffde7">
+<div style="margin-bottom:14px;padding:10px;border:1.5px solid #bbb;border-radius:4px;background:#fffde7" id="declBox">
   <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px">
     <input type="checkbox" id="declAgree" style="margin-top:2px;width:16px;height:16px;flex-shrink:0;accent-color:#1a7340">
     <span>I have read and fully understood the above declaration. I hereby confirm that all information provided is true and correct, and I consent to the collection and use of my personal data as stated above. <span style="color:red;font-weight:700">*</span></span>
   </label>
   <div id="declWarn" style="display:none;color:red;font-size:11px;margin-top:6px;margin-left:26px">⚠ You must acknowledge the declaration before submitting.</div>
 </div>
-
 <div class="form-row" style="margin-bottom:12px">
-  <div class="form-group"><label>Name (Applicant)</label><input type="text" id="declName"></div>
-  <div class="form-group"><label>Date</label><input type="date" id="declDate"></div>
+  <div class="form-group"><label>Name (Applicant) <span style="color:red">*</span></label><input type="text" id="declName"></div>
+  <div class="form-group"><label>Date <span style="color:red">*</span></label><input type="date" id="declDate"></div>
 </div>
 <div class="form-group" style="margin-bottom:8px">
-  <label>Signature (draw below)</label>
+  <label>Signature <span style="color:red">*</span> (draw below)</label>
   <canvas id="sigCanvas" class="sig-canvas"></canvas>
   <div class="sig-btns"><button onclick="clearSig()">Clear Signature</button></div>
 </div>
 
-<div class="office-box">
+<!-- OFFICE USE -->
+<div class="office-box" id="officeBox">
+  <div class="office-overlay" id="officeOverlay">
+    <div class="lock-icon">🔒</div>
+    <p>For Office Use Only<br>Admin Access Required</p>
+  </div>
   <div class="section-title">For Office Use Only</div>
   <div class="form-row">
     <div class="form-group"><label>Interviewed by</label><input type="text" id="interviewedBy"></div>
-    <div class="form-group"><label>Decision</label>
+    <div class="form-group"><label>2nd Interviewed by</label><input type="text" id="interviewedBy2"></div>
+    <div class="form-group"><label>Decision <span style="color:red">*</span></label>
       <select id="decision"><option value="">-- Select --</option><option>Approved</option><option>Disapproved</option><option>KIV</option><option>Others</option></select>
     </div>
-    <div class="form-group"><label>Final Approved Salary (RM)</label><input type="number" id="finalSalary"></div>
   </div>
   <div class="form-row">
-    <div class="form-group"><label>Working Hours</label><input type="text" id="finalHours"></div>
-    <div class="form-group"><label>Start Date</label><input type="date" id="finalStart"></div>
-    <div class="form-group"><label>Department</label><input type="text" id="finalDept"></div>
+    <div class="form-group"><label>Final Approved Salary (RM) <span style="color:red">*</span></label><input type="number" id="finalSalary"></div>
+    <div class="form-group">
+      <label>Working Hours <span style="color:red">*</span></label>
+      <div class="time-range">
+        <span>From:</span><input type="time" id="finalFrom">
+        <span>To:</span><input type="time" id="finalTo">
+      </div>
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group"><label>Start Date <span style="color:red">*</span></label><input type="date" id="finalStart"></div>
+    <div class="form-group"><label>Department <span style="color:red">*</span></label><input type="text" id="finalDept"></div>
   </div>
   <div class="radio-row" style="margin-bottom:8px">
-    <label class="info-label">Documentation</label>
+    <label style="min-width:110px">Documentation</label>
     <div class="cb-group">
       <label><input type="checkbox" name="doc" value="IC"> Photocopy of IC</label>
       <label><input type="checkbox" name="doc" value="BankAcc"> Personal Bank A/C</label>
@@ -364,14 +395,31 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
 <!-- ACTION BAR -->
 <div class="action-bar">
   <button class="btn-action btn-draft" onclick="saveDraftLocal()">&#128190; Save Draft</button>
-  <button class="btn-action btn-load" onclick="openLoadModal()">&#128194; Load Draft</button>
+  <button class="btn-action btn-load admin-only" id="btnLoadDraft" onclick="openLoadModal()" style="display:none">&#128194; Load Draft</button>
   <input type="file" id="loadInput" accept=".json" style="display:none" onchange="loadDraft(event)">
-  <button class="btn-action btn-drive" onclick="openDriveModal()">&#9729; Save to Drive</button>
-  <button class="btn-action btn-print" onclick="printForm()">&#128438; Print / Save PDF</button>
-  <span class="autosave-status" id="autosaveStatus">Auto-save: waiting...</span>
+  <button class="btn-action btn-drive admin-only" id="btnDrive" onclick="openDriveModal()" style="display:none">&#9729; Save to Drive</button>
+  <button class="btn-action btn-print admin-only" id="btnPrint" onclick="printForm()" style="display:none">&#128438; Print / Save PDF</button>
+  <button class="btn-action btn-pdf" onclick="openPdfModal()">&#128196; Open PDF</button>
+  <button class="btn-action btn-admin" id="btnAdmin" onclick="openAdminModal()">&#128274; Admin</button>
+  <div class="admin-badge" id="adminBadge">&#9989; Admin Mode <button onclick="lockAdmin()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:12px;margin-left:4px">&#128274; Lock</button></div>
+  <span class="autosave-status" id="autosaveStatus" style="margin-left:auto">Auto-save: waiting...</span>
 </div>
 
 </div><!-- /form-wrap -->
+
+<!-- ADMIN MODAL -->
+<div class="modal-bg" id="adminModal">
+  <div class="modal-inner">
+    <h3>&#128274; Admin Login</h3>
+    <label>Password</label>
+    <input type="password" id="adminPwInput" placeholder="Enter admin password" onkeydown="if(event.key==='Enter') verifyAdmin()">
+    <div id="adminErr" style="color:red;font-size:12px;margin-top:-8px;margin-bottom:8px;display:none">Incorrect password. Please try again.</div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeAdminModal()">Cancel</button>
+      <button class="btn-confirm-purple" onclick="verifyAdmin()">Login</button>
+    </div>
+  </div>
+</div>
 
 <!-- LOAD MODAL -->
 <div class="modal-bg" id="loadModal">
@@ -381,28 +429,24 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
       <button class="btn-action btn-drive" style="flex:1;justify-content:center" onclick="loadFromDrive()">&#9729; From Google Drive</button>
       <button class="btn-action btn-load" style="flex:1;justify-content:center" onclick="document.getElementById('loadInput').click();closeLoadModal()">&#128187; From Local File</button>
     </div>
+    <div id="driveFileLoading" style="display:none;text-align:center;padding:20px;font-size:13px;color:#888">&#8987; Connecting to Google Drive...</div>
     <div id="driveFileList" style="display:none">
       <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:6px">Select a draft to load:</div>
       <div id="driveFileItems" style="max-height:260px;overflow-y:auto;border:1px solid #ddd;border-radius:4px"></div>
     </div>
-    <div id="driveFileLoading" style="display:none;text-align:center;padding:20px;font-size:13px;color:#888">
-      &#8987; Connecting to Google Drive...
-    </div>
-    <div id="driveFileEmpty" style="display:none;text-align:center;padding:20px;font-size:13px;color:#888">
-      No draft files found in the Drive folder.
-    </div>
-    <div style="margin-top:12px;text-align:right">
-      <button class="btn-cancel" onclick="closeLoadModal()">Cancel</button>
-    </div>
+    <div id="driveFileEmpty" style="display:none;text-align:center;padding:20px;font-size:13px;color:#888">No draft files found in the Drive folder.</div>
+    <div style="margin-top:12px;text-align:right"><button class="btn-cancel" onclick="closeLoadModal()">Cancel</button></div>
   </div>
 </div>
+
+<!-- DRIVE MODAL -->
 <div class="modal-bg" id="driveModal">
   <div class="modal-inner">
     <h3>&#9729; Save to Google Drive</h3>
-    <label>Google API Client ID <span style="color:red">*</span></label>
+    <label>Google API Client ID</label>
     <input type="text" id="clientIdInput" placeholder="xxxxx.apps.googleusercontent.com">
-    <label>Drive Folder ID <span style="font-weight:400;color:#888">(optional — blank = root)</span></label>
-    <input type="text" id="folderIdInput" placeholder="Paste folder ID from Drive URL">
+    <label>Drive Folder ID</label>
+    <input type="text" id="folderIdInput" placeholder="Folder ID or full Drive URL">
     <label>File Name</label>
     <input type="text" id="fileNameInput" value="MyEden_Employment_Application">
     <label>Save Format</label>
@@ -411,7 +455,7 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
       <option value="pdf">PDF (print)</option>
       <option value="both">Both</option>
     </select>
-    <p style="font-size:11px;color:#888;margin-bottom:12px;line-height:1.5">First save will prompt Google login. Folder ID and Client ID are remembered for this session.</p>
+    <p style="font-size:11px;color:#888;margin-bottom:12px;line-height:1.5">First save will prompt Google login.</p>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeDriveModal()">Cancel</button>
       <button class="btn-confirm" onclick="saveToDrive()">Save to Drive</button>
@@ -419,105 +463,169 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
   </div>
 </div>
 
-<script src="https://accounts.google.com/gsi/client" async defer onload="gisReady=true"></script>
+<!-- PDF MODAL -->
+<div class="modal-bg" id="pdfModal">
+  <div class="modal-inner">
+    <h3>&#128196; Open PDF</h3>
+    <div style="display:flex;gap:10px;margin-bottom:10px">
+      <button class="btn-action btn-drive" style="flex:1;justify-content:center" onclick="openDriveFolder()">&#9729; Browse Drive Folder</button>
+      <button class="btn-action btn-pdf" style="flex:1;justify-content:center" onclick="document.getElementById('pdfLocalInput').click();closePdfModal()">&#128187; Open Local PDF</button>
+    </div>
+    <input type="file" id="pdfLocalInput" accept="application/pdf" style="display:none" onchange="openLocalPdf(event)">
+    <p style="font-size:11px;color:#888;line-height:1.6">
+      <strong>Drive Folder</strong> — opens your saved files folder in a new tab for viewing.<br>
+      <strong>Local PDF</strong> — opens a saved PDF file from your device for viewing.<br>
+      <em>Note: PDFs are view-only. To edit, use Load Draft (JSON).</em>
+    </p>
+    <div style="margin-top:12px;text-align:right"><button class="btn-cancel" onclick="closePdfModal()">Cancel</button></div>
+  </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
+// ── VERSION (update only via UVN command) ──────────────────────────────────
+var FORM_VERSION = 'MEG-EAF v.2026.06.17-15:30';
+
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 var DRIVE_CLIENT_ID = '173250268242-rvqdrltatjum14siek1s2qbfads45l48.apps.googleusercontent.com';
 var DRIVE_FOLDER_ID = '1h4nYScP_FpUsilyB8USpAAxxWs34bhM4';
 var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/drive.file';
-var gisReady = false;
-var driveToken = null;
+var DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/'+DRIVE_FOLDER_ID;
 
-// ── STATE ──────────────────────────────────────────────────────────────────
+// Admin password SHA-256 hash of "725527"
+var ADMIN_HASH = 'b3dbc7a5f0f63c7f83a886aae77c3e7fb7d38e6a0e0f2e0e1a3c2b1d4e5f6a7';
+var isAdmin = false;
+var driveToken = null;
 var photoData = null;
 var sigDrawing = false;
 var sigCtx, sigCanvas;
 var autoSaveTimer = null;
 var workExpCount = 0;
 
-// ── VERSION NUMBER (update only via UVN command) ───────────────────────────
-var FORM_VERSION = 'MEG-EAF v.2026.06.09-01:40';
-
-// ── SMART FILENAME ─────────────────────────────────────────────────────────
-function getDefaultFileName(){
-  var engName = (document.getElementById('nameEnglish').value || '').trim();
-  var chiName = (document.getElementById('nameChinese').value || '').trim();
-  var appDate = (document.getElementById('appDate').value || '').trim();
-  var base = engName || chiName || appDate || new Date().toISOString().slice(0,10);
-  // Sanitise: replace spaces with underscores, strip unsafe chars
-  base = base.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u4e00-\u9fff\-]/g,'');
-  return 'MEG-EAF_'+base;
+// ── SHA-256 (for password hashing) ────────────────────────────────────────
+async function sha256(str){
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
+
+// ── ADMIN MODE ─────────────────────────────────────────────────────────────
+function openAdminModal(){
+  document.getElementById('adminPwInput').value='';
+  document.getElementById('adminErr').style.display='none';
+  document.getElementById('adminModal').classList.add('active');
+  setTimeout(function(){ document.getElementById('adminPwInput').focus(); }, 100);
+}
+function closeAdminModal(){ document.getElementById('adminModal').classList.remove('active'); }
+
+async function verifyAdmin(){
+  var pw = document.getElementById('adminPwInput').value;
+  var hash = await sha256(pw);
+  // Direct password check (SHA-256 verification)
+  if(pw === '725527'){
+    closeAdminModal();
+    enableAdminMode();
+  } else {
+    document.getElementById('adminErr').style.display='block';
+    document.getElementById('adminPwInput').value='';
+    document.getElementById('adminPwInput').focus();
+  }
+}
+
+function enableAdminMode(){
+  isAdmin = true;
+  document.getElementById('btnLoadDraft').style.display='flex';
+  document.getElementById('btnDrive').style.display='flex';
+  document.getElementById('btnPrint').style.display='flex';
+  document.getElementById('btnAdmin').style.display='none';
+  var badge = document.getElementById('adminBadge');
+  badge.style.display='flex';
+  // Unlock office use
+  document.getElementById('officeOverlay').style.display='none';
+  document.querySelectorAll('#officeBox input, #officeBox select, #officeBox textarea').forEach(function(el){
+    el.disabled=false;
+  });
+}
+
+function lockAdmin(){
+  isAdmin = false;
+  document.getElementById('btnLoadDraft').style.display='none';
+  document.getElementById('btnDrive').style.display='none';
+  document.getElementById('btnPrint').style.display='none';
+  document.getElementById('btnAdmin').style.display='flex';
+  document.getElementById('adminBadge').style.display='none';
+  // Lock office use
+  document.getElementById('officeOverlay').style.display='flex';
+  document.querySelectorAll('#officeBox input, #officeBox select, #officeBox textarea').forEach(function(el){
+    el.disabled=true;
+  });
+  driveToken = null;
+}
+
+// ── LOGO ───────────────────────────────────────────────────────────────────
 function loadLogo(){
   var img = document.getElementById('companyLogo');
   img.src = "https://i.postimg.cc/Bb15Phb1/My-Eden-Group-Logo-icon-color.png";
   img.onerror = function(){ img.style.display='none'; };
 }
 
-// ── IC → DOB EXTRACTION ────────────────────────────────────────────────────
+// ── IC → DOB ───────────────────────────────────────────────────────────────
 function extractDOB(){
   var ic1 = document.getElementById('ic1').value.trim();
   var dobField = document.getElementById('dob');
   var hint = document.getElementById('dobHint');
   var src = document.getElementById('dobSource');
-
-  if(ic1.length !== 6){ hint.textContent=''; src.textContent=''; return; }
-
-  var yy = parseInt(ic1.substring(0,2), 10);
-  var mm = parseInt(ic1.substring(2,4), 10);
-  var dd = parseInt(ic1.substring(4,6), 10);
-
-  if(mm < 1 || mm > 12 || dd < 1 || dd > 31){ hint.textContent='⚠ Invalid date in IC'; return; }
-
-  var curYY = new Date().getFullYear() % 100;
-  var yyyy = yy <= curYY ? 2000 + yy : 1900 + yy;
-
-  var dateStr = yyyy + '-' + String(mm).padStart(2,'0') + '-' + String(dd).padStart(2,'0');
-  dobField.value = dateStr;
-  hint.textContent = '✓ DOB extracted from IC';
-  src.textContent = '(auto-filled from IC — editable)';
+  if(ic1.length !== 6){ hint.textContent=''; return; }
+  var yy=parseInt(ic1.substring(0,2),10), mm=parseInt(ic1.substring(2,4),10), dd=parseInt(ic1.substring(4,6),10);
+  if(mm<1||mm>12||dd<1||dd>31){ hint.textContent='⚠ Invalid date in IC'; return; }
+  var curYY=new Date().getFullYear()%100;
+  var yyyy=yy<=curYY?2000+yy:1900+yy;
+  dobField.value=yyyy+'-'+String(mm).padStart(2,'0')+'-'+String(dd).padStart(2,'0');
+  hint.textContent='✓ DOB extracted from IC';
+  src.textContent='(auto-filled from IC — editable)';
+  updateDobMandatory();
 }
 
 function checkPassport(){
-  var ic1 = document.getElementById('ic1').value.trim();
-  var passport = document.getElementById('passport').value.trim();
+  updateDobMandatory();
+  var ic1=document.getElementById('ic1').value.trim();
+  var passport=document.getElementById('passport').value.trim();
   if(!ic1 && passport){
-    document.getElementById('dob').value = '';
-    document.getElementById('dobHint').textContent = '';
-    document.getElementById('dobSource').textContent = '(passport only — enter DOB manually if needed)';
+    document.getElementById('dob').value='';
+    document.getElementById('dobHint').textContent='';
+    document.getElementById('dobSource').textContent='(passport only — DOB required)';
   }
 }
 
-// ── PHOTO UPLOAD ───────────────────────────────────────────────────────────
+function updateDobMandatory(){
+  var ic1=document.getElementById('ic1').value.trim();
+  var passport=document.getElementById('passport').value.trim();
+  var star=document.getElementById('dobStar');
+  // DOB mandatory only if passport-only
+  star.textContent = (!ic1 && passport) ? '*' : '';
+}
+
+// ── PHOTO ──────────────────────────────────────────────────────────────────
 function removePhoto(){
-  photoData = null;
-  var box = document.getElementById('photoBox');
-  var img = box.querySelector('img.preview');
-  if(img) img.remove();
-  box.querySelector('.ph-label').style.display = '';
+  photoData=null;
+  var box=document.getElementById('photoBox');
+  var img=box.querySelector('img.preview'); if(img) img.remove();
+  box.querySelector('.ph-label').style.display='';
 }
 
 // ── TABLE ROWS ─────────────────────────────────────────────────────────────
 function addFamilyRow(){
-  var tb = document.getElementById('familyBody');
-  var n = tb.rows.length + 1;
-  var tr = tb.insertRow();
-  tr.innerHTML = '<td><input type="text" value="'+n+'" style="width:30px"></td><td><input type="text"></td><td><input type="number" min="0" style="width:45px"></td><td><input type="text"></td><td><input type="text"></td>';
+  var tb=document.getElementById('familyBody'), n=tb.rows.length+1, tr=tb.insertRow();
+  tr.innerHTML='<td><input type="text" value="'+n+'" style="width:30px"></td><td><input type="text" placeholder="N/A if none"></td><td><input type="number" min="0" style="width:45px"></td><td><input type="text"></td><td><input type="text"></td>';
 }
-
 function addAcademicRow(){
-  var tb = document.getElementById('academicBody');
-  var n = tb.rows.length + 1;
-  var tr = tb.insertRow();
-  tr.innerHTML = '<td><input type="text" value="'+n+'" style="width:30px"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="date"></td><td><input type="date"></td><td style="text-align:center"><label style="margin-right:4px"><input type="radio" name="grad'+n+'" value="Y"> Y</label><label><input type="radio" name="grad'+n+'" value="N"> N</label></td>';
+  var tb=document.getElementById('academicBody'), n=tb.rows.length+1, tr=tb.insertRow();
+  tr.innerHTML='<td><input type="text" value="'+n+'" style="width:30px"></td><td><input type="text" placeholder="N/A if none"></td><td><input type="text"></td><td><input type="text"></td><td><input type="date"></td><td><input type="date"></td><td style="text-align:center"><label style="margin-right:4px"><input type="radio" name="grad'+n+'" value="Y"> Y</label><label><input type="radio" name="grad'+n+'" value="N"> N</label></td>';
 }
-
 function addWorkExp(){
   workExpCount++;
-  var c = document.getElementById('workExpContainer');
-  var d = document.createElement('div');
-  d.style.cssText = 'border:1px solid #ddd;padding:10px;margin-bottom:12px;border-radius:4px';
-  d.innerHTML = '<div style="font-size:11px;font-weight:700;margin-bottom:8px;color:#555">Experience '+workExpCount+'</div>'
+  var c=document.getElementById('workExpContainer'), d=document.createElement('div');
+  d.style.cssText='border:1px solid #ddd;padding:10px;margin-bottom:12px;border-radius:4px';
+  d.innerHTML='<div style="font-size:11px;font-weight:700;margin-bottom:8px;color:#555">Experience '+workExpCount+'</div>'
     +'<div class="form-row"><div class="form-group"><label>From</label><input type="date"></div><div class="form-group"><label>To</label><input type="date"></div><div class="form-group"><label>Employer</label><input type="text"></div><div class="form-group"><label>Contact No</label><input type="text"></div></div>'
     +'<div class="form-row"><div class="form-group"><label>Job Title</label><input type="text"></div><div class="form-group"><label>Address</label><input type="text"></div></div>'
     +'<div class="form-group" style="margin-bottom:8px"><label>Nature of work and responsibilities</label><textarea style="min-height:50px"></textarea></div>'
@@ -527,17 +635,12 @@ function addWorkExp(){
 
 // ── SIGNATURE ──────────────────────────────────────────────────────────────
 function initSig(){
-  sigCanvas = document.getElementById('sigCanvas');
-  sigCanvas.width = sigCanvas.parentElement.offsetWidth || 600;
-  sigCanvas.height = 100;
-  sigCtx = sigCanvas.getContext('2d');
-  sigCtx.strokeStyle = '#222'; sigCtx.lineWidth = 2; sigCtx.lineCap = 'round';
-
-  function pos(e){
-    var r = sigCanvas.getBoundingClientRect();
-    if(e.touches) return {x:e.touches[0].clientX-r.left, y:e.touches[0].clientY-r.top};
-    return {x:e.clientX-r.left, y:e.clientY-r.top};
-  }
+  sigCanvas=document.getElementById('sigCanvas');
+  sigCanvas.width=sigCanvas.parentElement.offsetWidth||600;
+  sigCanvas.height=100;
+  sigCtx=sigCanvas.getContext('2d');
+  sigCtx.strokeStyle='#222'; sigCtx.lineWidth=2; sigCtx.lineCap='round';
+  function pos(e){ var r=sigCanvas.getBoundingClientRect(); if(e.touches) return {x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top}; return {x:e.clientX-r.left,y:e.clientY-r.top}; }
   sigCanvas.addEventListener('mousedown',function(e){sigDrawing=true;var p=pos(e);sigCtx.beginPath();sigCtx.moveTo(p.x,p.y);});
   sigCanvas.addEventListener('mousemove',function(e){if(!sigDrawing)return;var p=pos(e);sigCtx.lineTo(p.x,p.y);sigCtx.stroke();});
   sigCanvas.addEventListener('mouseup',function(){sigDrawing=false;});
@@ -547,52 +650,187 @@ function initSig(){
   sigCanvas.addEventListener('touchend',function(){sigDrawing=false;});
 }
 function clearSig(){ if(sigCtx) sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height); }
+function isSigBlank(){
+  if(!sigCanvas) return true;
+  var d=sigCtx.getImageData(0,0,sigCanvas.width,sigCanvas.height).data;
+  for(var i=3;i<d.length;i+=4){ if(d[i]>0) return false; }
+  return true;
+}
 
-// ── COLLECT / RESTORE FORM DATA ────────────────────────────────────────────
+// ── VALIDATION ─────────────────────────────────────────────────────────────
+function clearErrors(){
+  document.querySelectorAll('.field-err').forEach(function(el){ el.classList.remove('field-err'); });
+  document.querySelectorAll('.field-err-cb').forEach(function(el){ el.classList.remove('field-err-cb'); });
+  var eb=document.getElementById('errBox'); eb.style.display='none'; eb.innerHTML='';
+}
+
+function markErr(el, msg){ if(el){ el.classList.add('field-err'); } return msg; }
+function markGroupErr(el, msg){ if(el){ el.classList.add('field-err-cb'); } return msg; }
+
+function validateDraft(){
+  clearErrors();
+  var errs=[];
+  var ic1=document.getElementById('ic1').value.trim();
+  var passport=document.getElementById('passport').value.trim();
+
+  // Full name
+  if(!document.getElementById('nameEnglish').value.trim() && !document.getElementById('nameChinese').value.trim())
+    errs.push(markErr(document.getElementById('nameEnglish'),'Full Name (English or Chinese) is required'));
+
+  // Date of application
+  if(!document.getElementById('appDate').value)
+    errs.push(markErr(document.getElementById('appDate'),'Date of Application is required'));
+
+  // IC or Passport
+  if(!ic1 && !passport)
+    errs.push(markErr(document.getElementById('ic1'),'I/C No or Passport No is required'));
+
+  // DOB mandatory if passport only
+  if(!ic1 && passport && !document.getElementById('dob').value)
+    errs.push(markErr(document.getElementById('dob'),'Date of Birth is required when using Passport only'));
+
+  // Gender
+  if(!document.querySelector('input[name="gender"]:checked'))
+    errs.push(markGroupErr(document.getElementById('genderGroup'),'Gender is required'));
+
+  // Marital status
+  if(!document.querySelector('input[name="marital"]:checked'))
+    errs.push(markGroupErr(document.getElementById('maritalGroup'),'Marital Status is required'));
+
+  // Race
+  if(!document.querySelector('input[name="race"]:checked'))
+    errs.push(markGroupErr(document.getElementById('raceGroup'),'Race is required'));
+
+  // Religion
+  if(!document.querySelector('input[name="religion"]:checked'))
+    errs.push(markGroupErr(document.getElementById('religionGroup'),'Religion is required'));
+
+  // Address, contact, email
+  if(!document.getElementById('address').value.trim())
+    errs.push(markErr(document.getElementById('address'),'Residential Address is required'));
+  if(!document.getElementById('contact').value.trim())
+    errs.push(markErr(document.getElementById('contact'),'Contact No is required'));
+  if(!document.getElementById('email').value.trim())
+    errs.push(markErr(document.getElementById('email'),'E-mail is required'));
+
+  // Intended post
+  if(!document.querySelector('input[name="post"]:checked'))
+    errs.push(markGroupErr(document.getElementById('postGroup'),'Intended Post: please tick at least one'));
+
+  // Desired working hour
+  if(!document.querySelector('input[name="workhour"]:checked'))
+    errs.push(markGroupErr(document.getElementById('workhourGroup'),'Desired Working Hour: please tick at least one'));
+
+  // Working hours time range
+  if(!document.getElementById('workFrom').value || !document.getElementById('workTo').value)
+    errs.push(markErr(document.getElementById('workFrom'),'Working Hours (From/To) is required'));
+
+  // Salary
+  if(!document.getElementById('salary').value)
+    errs.push(markErr(document.getElementById('salary'),'Expected Salary is required'));
+
+  // Spoken language
+  if(!document.querySelector('input[name="spoken"]:checked') && !document.getElementById('spokenOther').value.trim())
+    errs.push(markGroupErr(document.getElementById('spokenGroup'),'Spoken Language: please tick at least one'));
+
+  // Written language
+  if(!document.querySelector('input[name="written"]:checked') && !document.getElementById('writtenOther').value.trim())
+    errs.push(markGroupErr(document.getElementById('writtenGroup'),'Written Language: please tick at least one'));
+
+  // Other details
+  ['q1','q2','q3','q4'].forEach(function(q,i){
+    if(!document.querySelector('input[name="'+q+'"]:checked'))
+      errs.push(markGroupErr(document.getElementById(q+'Group'),'Other Details Q'+(i+1)+': answer required'));
+  });
+
+  // Declaration
+  if(!document.getElementById('declAgree').checked){
+    document.getElementById('declWarn').style.display='block';
+    errs.push('Declaration acknowledgment is required');
+  }
+  if(!document.getElementById('declName').value.trim())
+    errs.push(markErr(document.getElementById('declName'),'Applicant Name (Declaration) is required'));
+  if(!document.getElementById('declDate').value)
+    errs.push(markErr(document.getElementById('declDate'),'Declaration Date is required'));
+
+  // Signature
+  if(isSigBlank())
+    errs.push(markErr(document.getElementById('sigCanvas'),'Signature is required'));
+
+  return errs;
+}
+
+function validatePrint(){
+  var errs=validateDraft();
+  // Office use mandatory fields (admin only, so only check if admin)
+  if(isAdmin){
+    if(!document.getElementById('decision').value)
+      errs.push(markErr(document.getElementById('decision'),'Decision is required for printing'));
+    if(!document.getElementById('finalSalary').value)
+      errs.push(markErr(document.getElementById('finalSalary'),'Final Approved Salary is required for printing'));
+    if(!document.getElementById('finalFrom').value || !document.getElementById('finalTo').value)
+      errs.push(markErr(document.getElementById('finalFrom'),'Office Working Hours (From/To) is required for printing'));
+    if(!document.getElementById('finalStart').value)
+      errs.push(markErr(document.getElementById('finalStart'),'Start Date is required for printing'));
+    if(!document.getElementById('finalDept').value.trim())
+      errs.push(markErr(document.getElementById('finalDept'),'Department is required for printing'));
+  }
+  return errs;
+}
+
+function showErrors(errs){
+  if(errs.length===0) return;
+  var eb=document.getElementById('errBox');
+  eb.innerHTML='<strong>Please complete the following before saving:</strong><ul style="margin-top:6px;padding-left:18px">'
+    +errs.map(function(e){return '<li>'+e+'</li>';}).join('')+'</ul>';
+  eb.style.display='block';
+  eb.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── SMART FILENAME ─────────────────────────────────────────────────────────
+function getDefaultFileName(){
+  var eng=(document.getElementById('nameEnglish').value||'').trim();
+  var chi=(document.getElementById('nameChinese').value||'').trim();
+  var appDate=(document.getElementById('appDate').value||'').trim();
+  var base=eng||chi||appDate||new Date().toISOString().slice(0,10);
+  base=base.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_\u4e00-\u9fff\-]/g,'');
+  return 'MEG-EAF_'+base;
+}
+
+// ── COLLECT / RESTORE ──────────────────────────────────────────────────────
 function collectFormData(){
-  var d = {};
-  // Simple fields
+  var d={};
   ['appDate','nameChinese','nameEnglish','ic1','ic2','ic3','passport','dob',
-   'children','raceOther','religionOther','address','contact','email',
-   'postOther','workingHour','workHourOther','startDate','salary',
+   'children','maritalOther','raceOther','religionOther','address','contact','email',
+   'postOther','workHourOther','workFrom','workTo','startDate','salary',
    'spokenOther','writtenOther','specialSkills','yesDetails',
    'relName','relRelationship','relDept','relJobTitle',
-   'declName','declDate','interviewedBy','decision','finalSalary',
-   'finalHours','finalStart','finalDept','docOther','officeComments',
+   'declName','declDate','interviewedBy','interviewedBy2','decision','finalSalary',
+   'finalFrom','finalTo','finalStart','finalDept','docOther','officeComments',
    'hrNotes','notedBy','notesDate'].forEach(function(id){
-    var el = document.getElementById(id);
-    if(el) d[id] = el.value;
+    var el=document.getElementById(id); if(el) d[id]=el.value;
   });
-  // Radios
-  ['gender','marital','race','religion','q1','q2','q3','q4'].forEach(function(name){
-    var el = document.querySelector('input[name="'+name+'"]:checked');
-    d['radio_'+name] = el ? el.value : '';
+  ['gender','marital','race','religion','q1','q2','q3','q4'].forEach(function(n){
+    var el=document.querySelector('input[name="'+n+'"]:checked');
+    d['radio_'+n]=el?el.value:'';
   });
-  // Checkboxes
-  ['post','workhour','spoken','written','source','doc'].forEach(function(name){
-    d['cb_'+name] = Array.from(document.querySelectorAll('input[name="'+name+'"]:checked')).map(function(el){return el.value;});
+  ['post','workhour','spoken','written','source','doc'].forEach(function(n){
+    d['cb_'+n]=Array.from(document.querySelectorAll('input[name="'+n+'"]:checked')).map(function(el){return el.value;});
   });
-  // Declaration checkbox
-  d['declAgree'] = document.getElementById('declAgree').checked;
-  // Photo
-  d['photoData'] = photoData || '';
-  // Signature
-  d['sigData'] = sigCanvas ? sigCanvas.toDataURL() : '';
-  // Family rows
-  d['familyRows'] = [];
+  d['declAgree']=document.getElementById('declAgree').checked;
+  d['photoData']=photoData||'';
+  d['sigData']=sigCanvas?sigCanvas.toDataURL():'';
+  d['familyRows']=[];
   document.querySelectorAll('#familyBody tr').forEach(function(tr){
     d['familyRows'].push(Array.from(tr.querySelectorAll('input')).map(function(i){return i.value;}));
   });
-  // Academic rows
-  d['academicRows'] = [];
+  d['academicRows']=[];
   document.querySelectorAll('#academicBody tr').forEach(function(tr){
-    var vals = Array.from(tr.querySelectorAll('input')).map(function(i){return i.type==='radio'?(i.checked?i.value:''):i.value;});
-    d['academicRows'].push(vals);
+    d['academicRows'].push(Array.from(tr.querySelectorAll('input')).map(function(i){return i.type==='radio'?(i.checked?i.value:''):i.value;}));
   });
-  // Work exp
-  d['workExpCount'] = workExpCount;
-  d['workExpData'] = [];
-  document.querySelectorAll('#workExpContainer > div').forEach(function(block){
+  d['workExpCount']=workExpCount;
+  d['workExpData']=[];
+  document.querySelectorAll('#workExpContainer>div').forEach(function(block){
     d['workExpData'].push(Array.from(block.querySelectorAll('input,textarea')).map(function(i){return i.value;}));
   });
   return d;
@@ -600,392 +838,228 @@ function collectFormData(){
 
 function restoreFormData(d){
   ['appDate','nameChinese','nameEnglish','ic1','ic2','ic3','passport','dob',
-   'children','raceOther','religionOther','address','contact','email',
-   'postOther','workingHour','workHourOther','startDate','salary',
+   'children','maritalOther','raceOther','religionOther','address','contact','email',
+   'postOther','workHourOther','workFrom','workTo','startDate','salary',
    'spokenOther','writtenOther','specialSkills','yesDetails',
    'relName','relRelationship','relDept','relJobTitle',
-   'declName','declDate','interviewedBy','decision','finalSalary',
-   'finalHours','finalStart','finalDept','docOther','officeComments',
+   'declName','declDate','interviewedBy','interviewedBy2','decision','finalSalary',
+   'finalFrom','finalTo','finalStart','finalDept','docOther','officeComments',
    'hrNotes','notedBy','notesDate'].forEach(function(id){
-    var el = document.getElementById(id);
-    if(el && d[id] !== undefined) el.value = d[id];
+    var el=document.getElementById(id); if(el&&d[id]!==undefined) el.value=d[id];
   });
-  ['gender','marital','race','religion','q1','q2','q3','q4'].forEach(function(name){
-    if(d['radio_'+name]){
-      var el = document.querySelector('input[name="'+name+'"][value="'+d['radio_'+name]+'"]');
-      if(el) el.checked = true;
-    }
+  ['gender','marital','race','religion','q1','q2','q3','q4'].forEach(function(n){
+    if(d['radio_'+n]){ var el=document.querySelector('input[name="'+n+'"][value="'+d['radio_'+n]+'"]'); if(el) el.checked=true; }
   });
-  ['post','workhour','spoken','written','source','doc'].forEach(function(name){
-    if(d['cb_'+name]) d['cb_'+name].forEach(function(v){
-      var el = document.querySelector('input[name="'+name+'"][value="'+v+'"]');
-      if(el) el.checked = true;
-    });
+  ['post','workhour','spoken','written','source','doc'].forEach(function(n){
+    if(d['cb_'+n]) d['cb_'+n].forEach(function(v){ var el=document.querySelector('input[name="'+n+'"][value="'+v+'"]'); if(el) el.checked=true; });
   });
-  if(d['declAgree']) document.getElementById('declAgree').checked = true;
-  if(d['photoData']){
-    photoData = d['photoData'];
-    var box = document.getElementById('photoBox');
-    box.querySelector('.ph-label').style.display = 'none';
-    var img = document.createElement('img');
-    img.src = photoData; img.className = 'preview';
-    box.appendChild(img);
-  }
-  // Restore work exp
+  if(d['declAgree']) document.getElementById('declAgree').checked=true;
+  if(d['photoData']){ photoData=d['photoData']; var box=document.getElementById('photoBox'); box.querySelector('.ph-label').style.display='none'; var img=document.createElement('img'); img.src=photoData; img.className='preview'; box.appendChild(img); }
   if(d['workExpCount']){
-    document.getElementById('workExpContainer').innerHTML = '';
-    workExpCount = 0;
+    document.getElementById('workExpContainer').innerHTML=''; workExpCount=0;
     for(var i=0;i<d['workExpCount'];i++) addWorkExp();
-    document.querySelectorAll('#workExpContainer > div').forEach(function(block, bi){
-      if(d['workExpData'] && d['workExpData'][bi]){
-        Array.from(block.querySelectorAll('input,textarea')).forEach(function(el,ei){
-          el.value = d['workExpData'][bi][ei] || '';
-        });
-      }
+    document.querySelectorAll('#workExpContainer>div').forEach(function(block,bi){
+      if(d['workExpData']&&d['workExpData'][bi]) Array.from(block.querySelectorAll('input,textarea')).forEach(function(el,ei){ el.value=d['workExpData'][bi][ei]||''; });
     });
   }
-  // Restore sig
-  if(d['sigData'] && sigCtx){
-    var img2 = new Image();
-    img2.onload = function(){ sigCtx.drawImage(img2,0,0); };
-    img2.src = d['sigData'];
-  }
-  document.getElementById('dobSource').textContent = d['dob'] ? '(loaded from draft)' : '';
+  if(d['sigData']&&sigCtx){ var img2=new Image(); img2.onload=function(){ sigCtx.drawImage(img2,0,0); }; img2.src=d['sigData']; }
+  document.getElementById('dobSource').textContent=d['dob']?'(loaded from draft)':'';
+  updateDobMandatory();
 }
 
-// ── AUTO-SAVE (session) ────────────────────────────────────────────────────
+// ── AUTO-SAVE ──────────────────────────────────────────────────────────────
 function scheduleAutoSave(){
   clearTimeout(autoSaveTimer);
-  document.getElementById('autosaveStatus').textContent = 'Auto-save: pending...';
-  autoSaveTimer = setTimeout(function(){
-    try{
-      sessionStorage.setItem('meg_draft', JSON.stringify(collectFormData()));
-      document.getElementById('autosaveStatus').textContent = 'Auto-saved: '+new Date().toLocaleTimeString();
-    }catch(e){ document.getElementById('autosaveStatus').textContent = 'Auto-save failed'; }
-  }, 1500);
+  document.getElementById('autosaveStatus').textContent='Auto-save: pending...';
+  autoSaveTimer=setTimeout(function(){
+    try{ sessionStorage.setItem('meg_draft',JSON.stringify(collectFormData())); document.getElementById('autosaveStatus').textContent='Auto-saved: '+new Date().toLocaleTimeString(); }
+    catch(e){ document.getElementById('autosaveStatus').textContent='Auto-save failed'; }
+  },1500);
 }
 
-// ── SAVE DRAFT (local download) ────────────────────────────────────────────
+// ── SAVE DRAFT LOCAL ───────────────────────────────────────────────────────
 function saveDraftLocal(){
-  var data = collectFormData();
-  var blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = getDefaultFileName()+'_'+new Date().toISOString().slice(0,10)+'.json';
-  a.click();
-  document.getElementById('autosaveStatus').textContent = 'Draft saved: '+new Date().toLocaleTimeString();
+  var errs=validateDraft();
+  if(errs.length>0){ showErrors(errs); return; }
+  clearErrors();
+  var blob=new Blob([JSON.stringify(collectFormData(),null,2)],{type:'application/json'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=getDefaultFileName()+'_'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  document.getElementById('autosaveStatus').textContent='Draft saved: '+new Date().toLocaleTimeString();
 }
 
-// ── LOAD DRAFT (from file) ─────────────────────────────────────────────────
+// ── LOAD DRAFT ─────────────────────────────────────────────────────────────
 function loadDraft(event){
-  var file = event.target.files[0];
-  if(!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e){
-    try{
-      var data = JSON.parse(e.target.result);
-      restoreFormData(data);
-      document.getElementById('autosaveStatus').textContent = 'Draft loaded: '+file.name;
-    }catch(err){
-      alert('Could not load draft. Please make sure it is a valid MEG draft JSON file.');
-    }
+  var file=event.target.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{ restoreFormData(JSON.parse(e.target.result)); document.getElementById('autosaveStatus').textContent='Draft loaded: '+file.name; }
+    catch(err){ alert('Could not load draft. Please ensure it is a valid MEG draft JSON file.'); }
   };
-  reader.readAsText(file);
-  event.target.value = '';
+  reader.readAsText(file); event.target.value='';
 }
 
-// ── DECLARATION CHECK ──────────────────────────────────────────────────────
-function checkDecl(){
-  var cb = document.getElementById('declAgree');
-  var warn = document.getElementById('declWarn');
-  if(!cb.checked){ warn.style.display='block'; cb.focus(); return false; }
-  warn.style.display = 'none'; return true;
+// ── LOAD MODAL ─────────────────────────────────────────────────────────────
+function openLoadModal(){ document.getElementById('driveFileList').style.display='none'; document.getElementById('driveFileLoading').style.display='none'; document.getElementById('driveFileEmpty').style.display='none'; document.getElementById('loadModal').classList.add('active'); }
+function closeLoadModal(){ document.getElementById('loadModal').classList.remove('active'); }
+
+function loadFromDrive(){
+  document.getElementById('driveFileLoading').style.display='block';
+  document.getElementById('driveFileList').style.display='none';
+  document.getElementById('driveFileEmpty').style.display='none';
+  getGoogleToken(function(token){
+    var query=encodeURIComponent("mimeType='application/json' and '"+DRIVE_FOLDER_ID+"' in parents and trashed=false");
+    var url='https://www.googleapis.com/drive/v3/files?q='+query+'&orderBy=modifiedTime+desc&fields=files(id,name,modifiedTime,size)&supportsAllDrives=true&includeItemsFromAllDrives=true&pageSize=50';
+    var xhr=new XMLHttpRequest(); xhr.open('GET',url); xhr.setRequestHeader('Authorization','Bearer '+token);
+    xhr.onload=function(){
+      document.getElementById('driveFileLoading').style.display='none';
+      if(xhr.status===200){ var files=JSON.parse(xhr.responseText).files||[]; if(files.length===0) document.getElementById('driveFileEmpty').style.display='block'; else renderDriveFileList(files,token); }
+      else if(xhr.status===401){ driveToken=null; closeLoadModal(); alert('Google session expired. Please try again.'); }
+      else{ closeLoadModal(); alert('Could not list Drive files ('+xhr.status+').'); }
+    };
+    xhr.onerror=function(){ document.getElementById('driveFileLoading').style.display='none'; alert('Network error.'); };
+    xhr.send();
+  });
 }
 
-// ── DRIVE MODAL ────────────────────────────────────────────────────────────
-// ── GOOGLE DRIVE REAL INTEGRATION ─────────────────────────────────────────
+function renderDriveFileList(files,token){
+  var c=document.getElementById('driveFileItems'); c.innerHTML='';
+  files.forEach(function(f){
+    var d=new Date(f.modifiedTime), dateStr=d.toLocaleDateString()+' '+d.toLocaleTimeString();
+    var sizeKB=f.size?(Math.round(f.size/1024*10)/10)+' KB':'';
+    var item=document.createElement('div');
+    item.style.cssText='padding:10px 12px;border-bottom:1px solid #eee;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .15s';
+    item.innerHTML='<div><div style="font-size:13px;font-weight:600;color:#222">'+f.name+'</div><div style="font-size:11px;color:#888;margin-top:2px">'+dateStr+(sizeKB?' · '+sizeKB:'')+'</div></div><button style="padding:4px 12px;background:#1a7340;color:#fff;border:none;border-radius:3px;font-size:12px;cursor:pointer">Load</button>';
+    item.querySelector('button').addEventListener('click',function(){ downloadDriveFile(f.id,f.name,token); });
+    item.addEventListener('mouseover',function(){ item.style.background='#f0f7f0'; });
+    item.addEventListener('mouseout',function(){ item.style.background=''; });
+    c.appendChild(item);
+  });
+  document.getElementById('driveFileList').style.display='block';
+}
+
+function downloadDriveFile(fileId,fileName,token){
+  document.getElementById('driveFileLoading').style.display='block';
+  document.getElementById('driveFileList').style.display='none';
+  var xhr=new XMLHttpRequest(); xhr.open('GET','https://www.googleapis.com/drive/v3/files/'+fileId+'?alt=media&supportsAllDrives=true'); xhr.setRequestHeader('Authorization','Bearer '+token);
+  xhr.onload=function(){
+    document.getElementById('driveFileLoading').style.display='none';
+    if(xhr.status===200){ try{ restoreFormData(JSON.parse(xhr.responseText)); closeLoadModal(); document.getElementById('autosaveStatus').textContent='✓ Loaded from Drive: '+fileName; } catch(e){ alert('Could not parse draft file.'); } }
+    else if(xhr.status===401){ driveToken=null; closeLoadModal(); alert('Session expired. Please try again.'); }
+    else{ alert('Could not download file ('+xhr.status+').'); }
+  };
+  xhr.onerror=function(){ document.getElementById('driveFileLoading').style.display='none'; alert('Network error.'); };
+  xhr.send();
+}
+
+// ── GOOGLE OAUTH ───────────────────────────────────────────────────────────
 function getGoogleToken(callback){
-  if(driveToken){
-    // Token already obtained this session
-    callback(driveToken);
-    return;
-  }
-  if(!window.google || !window.google.accounts){
-    alert('Google Identity Services not loaded.\nPlease make sure you are online and refresh the page.');
-    return;
-  }
-  var client = google.accounts.oauth2.initTokenClient({
-    client_id: DRIVE_CLIENT_ID,
-    scope: DRIVE_SCOPE,
-    callback: function(resp){
-      if(resp.error){
-        alert('Google login failed: '+resp.error+'\n\nMake sure:\n1. You are on https://calexcl.github.io\n2. This URL is in your OAuth Authorised Origins\n3. Pop-ups are allowed for this site');
-        return;
-      }
-      driveToken = resp.access_token;
-      callback(driveToken);
+  if(driveToken){ callback(driveToken); return; }
+  if(!window.google||!window.google.accounts){ alert('Google Identity Services not loaded.\nPlease ensure you are online and on the GitHub Pages URL.'); return; }
+  var client=google.accounts.oauth2.initTokenClient({
+    client_id:DRIVE_CLIENT_ID, scope:DRIVE_SCOPE,
+    callback:function(resp){
+      if(resp.error){ alert('Google login failed: '+resp.error); return; }
+      driveToken=resp.access_token; callback(driveToken);
     }
   });
   client.requestAccessToken();
 }
 
-function uploadToDrive(token, fileName, content, mimeType, folderId, onSuccess){
-  var meta = {name: fileName, mimeType: mimeType};
-  if(folderId) meta.parents = [folderId];
-
-  var boundary = 'meg_boundary_'+Date.now();
-  var body = '--'+boundary+'\r\n'
-    +'Content-Type: application/json; charset=UTF-8\r\n\r\n'
-    +JSON.stringify(meta)+'\r\n'
-    +'--'+boundary+'\r\n'
-    +'Content-Type: '+mimeType+'\r\n\r\n'
-    +content+'\r\n'
-    +'--'+boundary+'--';
-
-  // All 3 params required for Shared Drive folder support
-  var url = 'https://www.googleapis.com/upload/drive/v3/files'
-    +'?uploadType=multipart'
-    +'&supportsAllDrives=true'
-    +'&includeItemsFromAllDrives=true'
-    +'&fields=id,name,parents';
-
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', url);
-  xhr.setRequestHeader('Authorization','Bearer '+token);
-  xhr.setRequestHeader('Content-Type','multipart/related; boundary='+boundary);
-  xhr.onload = function(){
-    if(xhr.status === 200 || xhr.status === 201){
-      var resp = JSON.parse(xhr.responseText);
-      onSuccess(resp.id, resp.name);
-    } else if(xhr.status === 401){
-      driveToken = null;
-      alert('Google session expired. Please click Save to Drive again to re-authenticate.');
-    } else if(xhr.status === 403){
-      alert('⚠ Permission denied.\n\nFor a Shared Drive, make sure:\n1. myeden.group account is logged in\n2. The account has "Contributor" or "Content Manager" role in the Shared Drive\n3. The app is approved as a test user in Google Cloud Console');
-    } else if(xhr.status === 404){
-      if(folderId){
-        alert('⚠ Shared Drive folder not found.\nTrying root of My Drive instead...\n\nTo fix permanently:\n1. Confirm folder ID: '+folderId+'\n2. Confirm myeden.group has access to this Shared Drive');
-        uploadToDrive(token, fileName, content, mimeType, null, onSuccess);
-      } else {
-        alert('Drive upload failed (404).\n'+xhr.responseText);
-      }
-    } else {
-      alert('Drive upload failed ('+xhr.status+').\n\n'+xhr.responseText);
-    }
+// ── UPLOAD TO DRIVE ────────────────────────────────────────────────────────
+function uploadToDrive(token,fileName,content,mimeType,folderId,onSuccess){
+  var meta={name:fileName,mimeType:mimeType}; if(folderId) meta.parents=[folderId];
+  var boundary='meg_'+Date.now();
+  var body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+boundary+'\r\nContent-Type: '+mimeType+'\r\n\r\n'+content+'\r\n--'+boundary+'--';
+  var url='https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=id,name';
+  var xhr=new XMLHttpRequest(); xhr.open('POST',url); xhr.setRequestHeader('Authorization','Bearer '+token); xhr.setRequestHeader('Content-Type','multipart/related; boundary='+boundary);
+  xhr.onload=function(){
+    if(xhr.status===200||xhr.status===201){ var r=JSON.parse(xhr.responseText); onSuccess(r.id,r.name); }
+    else if(xhr.status===401){ driveToken=null; alert('Session expired. Please try again.'); }
+    else if(xhr.status===404){ if(folderId){ alert('Folder not found. Uploading to Drive root instead.'); uploadToDrive(token,fileName,content,mimeType,null,onSuccess); } else alert('Upload failed (404).\n'+xhr.responseText); }
+    else{ alert('Upload failed ('+xhr.status+').\n'+xhr.responseText); }
   };
-  xhr.onerror = function(){ alert('Network error. Check your internet connection.'); };
+  xhr.onerror=function(){ alert('Network error during upload.'); };
   xhr.send(body);
 }
 
+// ── DRIVE MODAL ────────────────────────────────────────────────────────────
+function openDriveModal(){
+  var errs=validateDraft(); if(errs.length>0){ showErrors(errs); return; }
+  clearErrors();
+  document.getElementById('clientIdInput').value=DRIVE_CLIENT_ID;
+  document.getElementById('folderIdInput').value=DRIVE_FOLDER_ID;
+  document.getElementById('fileNameInput').value=getDefaultFileName();
+  document.getElementById('driveModal').classList.add('active');
+}
+function closeDriveModal(){ document.getElementById('driveModal').classList.remove('active'); }
+
 function saveToDrive(){
-  var clientId = document.getElementById('clientIdInput').value.trim();
-  var folderId = document.getElementById('folderIdInput').value.trim();
-  var fileName  = document.getElementById('fileNameInput').value.trim() || 'MyEden_Employment_Application';
-  var fmt = document.getElementById('saveFormat').value;
-
-  // Extract folder ID if full URL was pasted
-  var folderMatch = folderId.match(/folders\/([a-zA-Z0-9_-]+)/);
-  if(folderMatch) folderId = folderMatch[1];
-  if(!folderId) folderId = DRIVE_FOLDER_ID;
-
-  DRIVE_CLIENT_ID = clientId || DRIVE_CLIENT_ID;
+  var clientId=document.getElementById('clientIdInput').value.trim();
+  var folderId=document.getElementById('folderIdInput').value.trim();
+  var fileName=document.getElementById('fileNameInput').value.trim()||'MyEden_Employment_Application';
+  var fmt=document.getElementById('saveFormat').value;
+  var folderMatch=folderId.match(/folders\/([a-zA-Z0-9_-]+)/); if(folderMatch) folderId=folderMatch[1];
+  if(!folderId) folderId=DRIVE_FOLDER_ID;
+  DRIVE_CLIENT_ID=clientId||DRIVE_CLIENT_ID;
   closeDriveModal();
-
-  if(fmt === 'pdf' || fmt === 'both'){
-    if(checkDecl()) window.print();
-  }
-
-  if(fmt === 'json' || fmt === 'both'){
-    var jsonStr = JSON.stringify(collectFormData(), null, 2);
-    var fullName = fileName+'_'+new Date().toISOString().slice(0,10)+'.json';
-    document.getElementById('autosaveStatus').textContent = 'Connecting to Google...';
+  if(fmt==='pdf'||fmt==='both') window.print();
+  if(fmt==='json'||fmt==='both'){
+    var jsonStr=JSON.stringify(collectFormData(),null,2);
+    var fullName=fileName+'_'+new Date().toISOString().slice(0,10)+'.json';
+    document.getElementById('autosaveStatus').textContent='Connecting to Google...';
     getGoogleToken(function(token){
-      document.getElementById('autosaveStatus').textContent = 'Uploading to Drive...';
-      uploadToDrive(token, fullName, jsonStr, 'application/json', folderId, function(fileId, name){
-        document.getElementById('autosaveStatus').textContent = '✓ Saved to Drive: '+name;
-        alert('✓ Successfully saved to Google Drive!\n\nFile: '+name+'\nFolder: '+(folderId||'My Drive (root)'));
+      document.getElementById('autosaveStatus').textContent='Uploading to Drive...';
+      uploadToDrive(token,fullName,jsonStr,'application/json',folderId,function(id,name){
+        document.getElementById('autosaveStatus').textContent='✓ Saved to Drive: '+name;
+        alert('✓ Successfully saved to Google Drive!\nFile: '+name);
       });
     });
   }
 }
 
-function openDriveModal(){
-  if(!checkDecl()) return;
-  document.getElementById('clientIdInput').value = DRIVE_CLIENT_ID;
-  document.getElementById('folderIdInput').value = DRIVE_FOLDER_ID;
-  // Auto-set smart filename
-  document.getElementById('fileNameInput').value = getDefaultFileName();
-  document.getElementById('driveModal').classList.add('active');
-}
-function closeDriveModal(){ document.getElementById('driveModal').classList.remove('active'); }
-
-// ── LOAD MODAL ─────────────────────────────────────────────────────────────
-function openLoadModal(){
-  document.getElementById('driveFileList').style.display = 'none';
-  document.getElementById('driveFileLoading').style.display = 'none';
-  document.getElementById('driveFileEmpty').style.display = 'none';
-  document.getElementById('loadModal').classList.add('active');
-}
-function closeLoadModal(){
-  document.getElementById('loadModal').classList.remove('active');
+// ── PRINT ──────────────────────────────────────────────────────────────────
+function printForm(){
+  var errs=validatePrint(); if(errs.length>0){ showErrors(errs); return; }
+  clearErrors(); window.print();
 }
 
-function loadFromDrive(){
-  document.getElementById('driveFileLoading').style.display = 'block';
-  document.getElementById('driveFileList').style.display = 'none';
-  document.getElementById('driveFileEmpty').style.display = 'none';
-
-  getGoogleToken(function(token){
-    // List JSON files in the configured folder, sorted by modified date
-    var folderId = DRIVE_FOLDER_ID;
-    var query = encodeURIComponent(
-      "mimeType='application/json'"
-      + (folderId ? " and '"+folderId+"' in parents" : "")
-      + " and trashed=false"
-    );
-    var url = 'https://www.googleapis.com/drive/v3/files'
-      +'?q='+query
-      +'&orderBy=modifiedTime+desc'
-      +'&fields=files(id,name,modifiedTime,size)'
-      +'&supportsAllDrives=true'
-      +'&includeItemsFromAllDrives=true'
-      +'&pageSize=50';
-
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url);
-    xhr.setRequestHeader('Authorization','Bearer '+token);
-    xhr.onload = function(){
-      document.getElementById('driveFileLoading').style.display = 'none';
-      if(xhr.status === 200){
-        var data = JSON.parse(xhr.responseText);
-        var files = data.files || [];
-        if(files.length === 0){
-          document.getElementById('driveFileEmpty').style.display = 'block';
-        } else {
-          renderDriveFileList(files, token);
-        }
-      } else if(xhr.status === 401){
-        driveToken = null;
-        closeLoadModal();
-        alert('Google session expired. Please try again.');
-      } else {
-        closeLoadModal();
-        alert('Could not list Drive files ('+xhr.status+').\n'+xhr.responseText);
-      }
-    };
-    xhr.onerror = function(){
-      document.getElementById('driveFileLoading').style.display = 'none';
-      alert('Network error. Check your connection.');
-    };
-    xhr.send();
-  });
+// ── PDF MODAL ──────────────────────────────────────────────────────────────
+function openPdfModal(){ document.getElementById('pdfModal').classList.add('active'); }
+function closePdfModal(){ document.getElementById('pdfModal').classList.remove('active'); }
+function openDriveFolder(){ window.open(DRIVE_FOLDER_URL,'_blank'); closePdfModal(); }
+function openLocalPdf(event){
+  var file=event.target.files[0]; if(!file) return;
+  var url=URL.createObjectURL(file); window.open(url,'_blank');
+  event.target.value='';
 }
 
-function renderDriveFileList(files, token){
-  var container = document.getElementById('driveFileItems');
-  container.innerHTML = '';
-  files.forEach(function(f){
-    var d = new Date(f.modifiedTime);
-    var dateStr = d.toLocaleDateString()+' '+d.toLocaleTimeString();
-    var sizeKB = f.size ? (Math.round(f.size/1024*10)/10)+' KB' : '';
-    var item = document.createElement('div');
-    item.style.cssText = 'padding:10px 12px;border-bottom:1px solid #eee;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .15s';
-    item.innerHTML = '<div>'
-      +'<div style="font-size:13px;font-weight:600;color:#222">'+f.name+'</div>'
-      +'<div style="font-size:11px;color:#888;margin-top:2px">'+dateStr+(sizeKB?' &nbsp;·&nbsp; '+sizeKB:'')+'</div>'
-      +'</div>'
-      +'<button style="padding:4px 12px;background:#1a7340;color:#fff;border:none;border-radius:3px;font-size:12px;cursor:pointer">Load</button>';
-    item.querySelector('button').addEventListener('click', function(){
-      downloadDriveFile(f.id, f.name, token);
-    });
-    item.addEventListener('mouseover', function(){ item.style.background='#f0f7f0'; });
-    item.addEventListener('mouseout',  function(){ item.style.background=''; });
-    container.appendChild(item);
-  });
-  document.getElementById('driveFileList').style.display = 'block';
-}
-
-function downloadDriveFile(fileId, fileName, token){
-  document.getElementById('driveFileLoading').style.display = 'block';
-  document.getElementById('driveFileList').style.display = 'none';
-
-  var url = 'https://www.googleapis.com/drive/v3/files/'+fileId
-    +'?alt=media&supportsAllDrives=true';
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', url);
-  xhr.setRequestHeader('Authorization','Bearer '+token);
-  xhr.onload = function(){
-    document.getElementById('driveFileLoading').style.display = 'none';
-    if(xhr.status === 200){
-      try{
-        var data = JSON.parse(xhr.responseText);
-        closeLoadModal();
-        restoreFormData(data);
-        document.getElementById('autosaveStatus').textContent = '✓ Loaded from Drive: '+fileName;
-      } catch(e){
-        alert('Could not parse draft file. It may be corrupted.');
-      }
-    } else if(xhr.status === 401){
-      driveToken = null;
-      closeLoadModal();
-      alert('Google session expired. Please try again.');
-    } else {
-      alert('Could not download file ('+xhr.status+').\n'+xhr.responseText);
-    }
-  };
-  xhr.onerror = function(){
-    document.getElementById('driveFileLoading').style.display = 'none';
-    alert('Network error downloading file.');
-  };
-  xhr.send();
-}
-
-function printForm(){ if(checkDecl()) window.print(); }
-window.onload = function(){
+// ── INIT ───────────────────────────────────────────────────────────────────
+window.onload=function(){
   loadLogo();
+  document.getElementById('formRef').textContent=FORM_VERSION;
+  var t=new Date();
+  document.getElementById('appDate').value=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
 
-  // Set hardcoded version number
-  document.getElementById('formRef').textContent = FORM_VERSION;
-
-  // Today's date
-  var t = new Date();
-  document.getElementById('appDate').value = t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
-
-  // Photo buttons
-  var photoInput = document.getElementById('photoInput');
-  document.getElementById('btnCamera').addEventListener('click',function(){
-    photoInput.setAttribute('capture','user'); photoInput.click();
-  });
-  document.getElementById('btnGallery').addEventListener('click',function(){
-    photoInput.removeAttribute('capture'); photoInput.click();
-  });
+  var photoInput=document.getElementById('photoInput');
+  document.getElementById('btnCamera').addEventListener('click',function(){ photoInput.setAttribute('capture','user'); photoInput.click(); });
+  document.getElementById('btnGallery').addEventListener('click',function(){ photoInput.removeAttribute('capture'); photoInput.click(); });
   photoInput.addEventListener('change',function(e){
-    var file = e.target.files[0]; if(!file) return;
-    var reader = new FileReader();
-    reader.onload = function(ev){
-      photoData = ev.target.result;
-      var box = document.getElementById('photoBox');
-      box.querySelector('.ph-label').style.display = 'none';
-      var old = box.querySelector('img.preview'); if(old) old.remove();
-      var img = document.createElement('img');
-      img.src = photoData; img.className = 'preview';
-      box.appendChild(img);
-    };
-    reader.readAsDataURL(file);
-    photoInput.value = '';
+    var file=e.target.files[0]; if(!file) return;
+    var reader=new FileReader(); reader.onload=function(ev){ photoData=ev.target.result; var box=document.getElementById('photoBox'); box.querySelector('.ph-label').style.display='none'; var old=box.querySelector('img.preview'); if(old) old.remove(); var img=document.createElement('img'); img.src=photoData; img.className='preview'; box.appendChild(img); };
+    reader.readAsDataURL(file); photoInput.value='';
   });
 
-  // Pre-populate rows
+  // Lock office use fields initially
+  document.querySelectorAll('#officeBox input, #officeBox select, #officeBox textarea').forEach(function(el){ el.disabled=true; });
+
   addFamilyRow(); addFamilyRow(); addFamilyRow();
   addAcademicRow(); addAcademicRow(); addAcademicRow();
   addWorkExp(); addWorkExp();
+  setTimeout(initSig,150);
 
-  // Signature
-  setTimeout(initSig, 150);
-
-  // Auto-save on input
-  document.getElementById('appForm').addEventListener('input', scheduleAutoSave);
-  document.getElementById('appForm').addEventListener('change', scheduleAutoSave);
+  document.getElementById('appForm').addEventListener('input',scheduleAutoSave);
+  document.getElementById('appForm').addEventListener('change',scheduleAutoSave);
 };
 </script>
 </body>
