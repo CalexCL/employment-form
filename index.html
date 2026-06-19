@@ -375,6 +375,40 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
   <div class="form-group"><label>Comments</label><textarea id="officeComments" style="min-height:50px"></textarea></div>
 </div>
 
+<!-- ID PHOTOS -->
+<div class="page-break"></div>
+<div class="section-title">Identification Document Photos</div>
+<label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:10px;cursor:pointer">
+  <input type="checkbox" id="usingPassport" style="width:16px;height:16px" onchange="toggleIdMode()">
+  Using Passport instead of I/C
+</label>
+<div style="display:flex;gap:16px;flex-wrap:wrap">
+  <div style="flex:1;min-width:220px">
+    <label style="font-size:12px;font-weight:600" id="idFrontLabel">I/C — Front <span style="color:red">*</span></label>
+    <div class="photo-box" id="idFrontBox" style="width:100%;height:160px;margin-top:4px">
+      <span class="ph-label">Click Camera or Gallery<br>to upload</span>
+    </div>
+    <div class="photo-btns" style="margin-top:4px">
+      <button type="button" id="btnIdFrontCam">Camera</button>
+      <button type="button" id="btnIdFrontGal">Gallery</button>
+      <button type="button" onclick="removeIdPhoto('idFront')">Clear</button>
+    </div>
+    <input type="file" id="idFrontInput" accept="image/*" style="display:none">
+  </div>
+  <div style="flex:1;min-width:220px">
+    <label style="font-size:12px;font-weight:600" id="idBackLabel">I/C — Back <span style="color:red">*</span></label>
+    <div class="photo-box" id="idBackBox" style="width:100%;height:160px;margin-top:4px">
+      <span class="ph-label">Click Camera or Gallery<br>to upload</span>
+    </div>
+    <div class="photo-btns" style="margin-top:4px">
+      <button type="button" id="btnIdBackCam">Camera</button>
+      <button type="button" id="btnIdBackGal">Gallery</button>
+      <button type="button" onclick="removeIdPhoto('idBack')">Clear</button>
+    </div>
+    <input type="file" id="idBackInput" accept="image/*" style="display:none">
+  </div>
+</div>
+
 <!-- NOTES PAGE -->
 <div class="page-break"></div>
 <div class="section-title" style="background:#c8e6c9;color:#1b5e20">&#128221; Interviewer / HR Notes</div>
@@ -487,7 +521,7 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 // ── VERSION (update only via UVN command) ──────────────────────────────────
-var FORM_VERSION = 'MEG-EAF v.2026.06.17-15:30';
+var FORM_VERSION = 'MEG-EAF v.2026.06.19-18:30';
 
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 var DRIVE_CLIENT_ID = '173250268242-rvqdrltatjum14siek1s2qbfads45l48.apps.googleusercontent.com';
@@ -500,6 +534,8 @@ var ADMIN_HASH = 'b3dbc7a5f0f63c7f83a886aae77c3e7fb7d38e6a0e0f2e0e1a3c2b1d4e5f6a
 var isAdmin = false;
 var driveToken = null;
 var photoData = null;
+var idFrontData = null;
+var idBackData = null;
 var sigDrawing = false;
 var sigCtx, sigCanvas;
 var autoSaveTimer = null;
@@ -607,6 +643,47 @@ function updateDobMandatory(){
   star.textContent = (!ic1 && passport) ? '*' : '';
 }
 
+// ── ID PHOTOS ──────────────────────────────────────────────────────────────
+function toggleIdMode(){
+  var isPassport = document.getElementById('usingPassport').checked;
+  var frontLbl = document.getElementById('idFrontLabel');
+  var backLbl = document.getElementById('idBackLabel');
+  if(isPassport){
+    frontLbl.innerHTML = 'Passport — Photo Page <span style="color:red">*</span>';
+    backLbl.innerHTML = 'Passport — Other Page <span style="color:#888;font-weight:400">(optional)</span>';
+  } else {
+    frontLbl.innerHTML = 'I/C — Front <span style="color:red">*</span>';
+    backLbl.innerHTML = 'I/C — Back <span style="color:red">*</span>';
+  }
+}
+
+function handleIdPhoto(inputId, boxId, varSetter){
+  var input = document.getElementById(inputId);
+  input.addEventListener('change', function(e){
+    var file = e.target.files[0]; if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      varSetter(ev.target.result);
+      var box = document.getElementById(boxId);
+      box.querySelector('.ph-label').style.display = 'none';
+      var old = box.querySelector('img.preview'); if(old) old.remove();
+      var img = document.createElement('img');
+      img.src = ev.target.result; img.className = 'preview';
+      box.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  });
+}
+
+function removeIdPhoto(which){
+  var box, setter;
+  if(which==='idFront'){ box=document.getElementById('idFrontBox'); idFrontData=null; }
+  else { box=document.getElementById('idBackBox'); idBackData=null; }
+  var img=box.querySelector('img.preview'); if(img) img.remove();
+  box.querySelector('.ph-label').style.display='';
+}
+
 // ── PHOTO ──────────────────────────────────────────────────────────────────
 function removePhoto(){
   photoData=null;
@@ -631,6 +708,7 @@ function addWorkExp(){
   d.innerHTML='<div style="font-size:11px;font-weight:700;margin-bottom:8px;color:#555">Experience '+workExpCount+'</div>'
     +'<div class="form-row"><div class="form-group"><label>From</label><input type="date"></div><div class="form-group"><label>To</label><input type="date"></div><div class="form-group"><label>Employer</label><input type="text"></div><div class="form-group"><label>Contact No</label><input type="text"></div></div>'
     +'<div class="form-row"><div class="form-group"><label>Job Title</label><input type="text"></div><div class="form-group"><label>Address</label><input type="text"></div></div>'
+    +'<div class="form-row"><div class="form-group"><label>Last Drawn Salary (RM)</label><input type="number" placeholder="0.00"></div></div>'
     +'<div class="form-group" style="margin-bottom:8px"><label>Nature of work and responsibilities</label><textarea style="min-height:50px"></textarea></div>'
     +'<div class="form-group"><label>Reason for leaving</label><input type="text"></div>';
   c.appendChild(d);
@@ -760,6 +838,13 @@ function validateDraft(){
   if(isSigBlank())
     errs.push(markErr(document.getElementById('sigCanvas'),'Signature is required'));
 
+  // ID Photos
+  var isPassportMode = document.getElementById('usingPassport').checked;
+  if(!idFrontData)
+    errs.push(markErr(document.getElementById('idFrontBox'), (isPassportMode?'Passport photo page':'I/C Front photo') + ' is required'));
+  if(!isPassportMode && !idBackData)
+    errs.push(markErr(document.getElementById('idBackBox'),'I/C Back photo is required'));
+
   return errs;
 }
 
@@ -821,7 +906,10 @@ function collectFormData(){
     d['cb_'+n]=Array.from(document.querySelectorAll('input[name="'+n+'"]:checked')).map(function(el){return el.value;});
   });
   d['declAgree']=document.getElementById('declAgree').checked;
+  d['usingPassport']=document.getElementById('usingPassport').checked;
   d['photoData']=photoData||'';
+  d['idFrontData']=idFrontData||'';
+  d['idBackData']=idBackData||'';
   d['sigData']=sigCanvas?sigCanvas.toDataURL():'';
   d['familyRows']=[];
   document.querySelectorAll('#familyBody tr').forEach(function(tr){
@@ -857,7 +945,10 @@ function restoreFormData(d){
     if(d['cb_'+n]) d['cb_'+n].forEach(function(v){ var el=document.querySelector('input[name="'+n+'"][value="'+v+'"]'); if(el) el.checked=true; });
   });
   if(d['declAgree']) document.getElementById('declAgree').checked=true;
+  if(d['usingPassport']){ document.getElementById('usingPassport').checked=true; toggleIdMode(); }
   if(d['photoData']){ photoData=d['photoData']; var box=document.getElementById('photoBox'); box.querySelector('.ph-label').style.display='none'; var img=document.createElement('img'); img.src=photoData; img.className='preview'; box.appendChild(img); }
+  if(d['idFrontData']){ idFrontData=d['idFrontData']; var fb=document.getElementById('idFrontBox'); fb.querySelector('.ph-label').style.display='none'; var fi=document.createElement('img'); fi.src=idFrontData; fi.className='preview'; fb.appendChild(fi); }
+  if(d['idBackData']){ idBackData=d['idBackData']; var bb=document.getElementById('idBackBox'); bb.querySelector('.ph-label').style.display='none'; var bi=document.createElement('img'); bi.src=idBackData; bi.className='preview'; bb.appendChild(bi); }
   if(d['workExpCount']){
     document.getElementById('workExpContainer').innerHTML=''; workExpCount=0;
     for(var i=0;i<d['workExpCount'];i++) addWorkExp();
@@ -1021,10 +1112,22 @@ function saveToDrive(){
   }
 }
 
+// ── JSON AUTO-BACKUP (always runs alongside any PDF/print action) ──────────
+function autoBackupJSON(){
+  try{
+    var blob=new Blob([JSON.stringify(collectFormData(),null,2)],{type:'application/json'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+    a.download=getDefaultFileName()+'_BACKUP_'+new Date().toISOString().slice(0,10)+'.json';
+    a.click();
+  }catch(e){ console.error('Auto-backup failed', e); }
+}
+
 // ── PRINT ──────────────────────────────────────────────────────────────────
 function printForm(){
   var errs=validatePrint(); if(errs.length>0){ showErrors(errs); return; }
-  clearErrors(); window.print();
+  clearErrors();
+  autoBackupJSON();
+  window.print();
 }
 
 // ── PDF MODAL ──────────────────────────────────────────────────────────────
@@ -1052,6 +1155,14 @@ window.onload=function(){
     var reader=new FileReader(); reader.onload=function(ev){ photoData=ev.target.result; var box=document.getElementById('photoBox'); box.querySelector('.ph-label').style.display='none'; var old=box.querySelector('img.preview'); if(old) old.remove(); var img=document.createElement('img'); img.src=photoData; img.className='preview'; box.appendChild(img); };
     reader.readAsDataURL(file); photoInput.value='';
   });
+
+  // ID photo buttons
+  document.getElementById('btnIdFrontCam').addEventListener('click',function(){ var i=document.getElementById('idFrontInput'); i.setAttribute('capture','user'); i.click(); });
+  document.getElementById('btnIdFrontGal').addEventListener('click',function(){ var i=document.getElementById('idFrontInput'); i.removeAttribute('capture'); i.click(); });
+  document.getElementById('btnIdBackCam').addEventListener('click',function(){ var i=document.getElementById('idBackInput'); i.setAttribute('capture','user'); i.click(); });
+  document.getElementById('btnIdBackGal').addEventListener('click',function(){ var i=document.getElementById('idBackInput'); i.removeAttribute('capture'); i.click(); });
+  handleIdPhoto('idFrontInput','idFrontBox',function(v){ idFrontData=v; });
+  handleIdPhoto('idBackInput','idBackBox',function(v){ idBackData=v; });
 
   // Lock office use fields initially
   document.querySelectorAll('#officeBox input, #officeBox select, #officeBox textarea').forEach(function(el){ el.disabled=true; });
