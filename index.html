@@ -84,6 +84,7 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
 .letter-doc table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:11px}
 .letter-doc th,.letter-doc td{border:1px solid #999;padding:4px 8px}
 .letter-page{margin-bottom:18px}
+.letter-doc table,.letter-doc ul,.letter-doc ol{break-inside:avoid;page-break-inside:avoid}
 .letter-page.force-break{page-break-before:always;break-before:page}
 .letter-sig-line{margin:30px 0 4px;border-bottom:1px solid #222;width:260px}
 .letter-private{text-align:center;font-weight:700;font-style:italic;letter-spacing:1px;margin:10px 0}
@@ -1369,246 +1370,325 @@ function onFinalSalaryInput(){
 function onSalaryWordsInput(){ salaryWordsManual = true; }
 
 // ── TERMS & CONDITIONS (shared body, identical clauses for both letter types) ──
-function buildTermsAndConditionsHTML(d){
-  return ''
-  +'<h3>Terms and Conditions Governing Your Offer of Employment at Myeden Group Sdn Bhd</h3>'
+function B(html){ return {html:html}; }
+function BH(html){ return {html:html, heading:true}; }
+function BA(html){ return {html:html, atomic:true}; }
 
-  +'<p class="l-clause-title">1. Commencement of Employment</p>'
-  +'<p>1.1 Your commencement date shall be '+d.startDateFmt+' and will, subject to the remaining terms of this offer of employment and after successful completion of your probation, continue until terminated by either party under the following terms and conditions.</p>'
+function buildTermsAndConditionsBlocks(d){
+  return [
+  BH('<h3>Terms and Conditions Governing Your Offer of Employment at Myeden Group Sdn Bhd</h3>'),
 
-  +'<p class="l-clause-title">2. Reporting</p>'
-  +'<p>2.1 You will report directly to '+d.reportingName+', '+d.reportingTitle+' of the Company.</p>'
+  BH('<p class="l-clause-title">1. Commencement of Employment</p>'),
+  B('<p>1.1 Your commencement date shall be '+d.startDateFmt+' and will, subject to the remaining terms of this offer of employment and after successful completion of your probation, continue until terminated by either party under the following terms and conditions.</p>'),
 
-  +'<p class="l-clause-title">3. Probation</p>'
-  +'<p>3.1 You will have to undergo a probationary period of up to six (6) calendar months from the date of commencement of employment as stated above. Your performance, including but not limited to your skill, competency, temperament, aptitude, attitude and suitability in relation to the position will be evaluated during the period of probation. This evaluation will determine if you will be confirmed in your employment in the Company.</p>'
-  +'<p>3.2 Your probation may, if necessary, be shortened or extended for such period as the Company deems fit.</p>'
-  +'<p>3.3 In the event that you fail to meet the Company\u2019s expectations of the position, you may be transferred to another department/job position for further probation, or you will not be confirmed and will not be retained in your employment at the end of the probation at full discretion of the Company.</p>'
-  +'<p>3.4 All other terms, conditions, duties and benefits during your probation are as stipulated in the Employee Handbook.</p>'
+  BH('<p class="l-clause-title">2. Reporting</p>'),
+  B('<p>2.1 You will report directly to '+d.reportingName+', '+d.reportingTitle+' of the Company.</p>'),
 
-  +'<p class="l-clause-title">4. Confirmation</p>'
-  +'<p>4.1 The Company shall, at the end of your probationary period or any extension thereof and subject to your satisfactory performance, notify you in writing of your confirmation of employment, termination of employment or extension of probation.</p>'
+  BH('<p class="l-clause-title">3. Probation</p>'),
+  B('<p>3.1 You will have to undergo a probationary period of up to six (6) calendar months from the date of commencement of employment as stated above. Your performance, including but not limited to your skill, competency, temperament, aptitude, attitude and suitability in relation to the position will be evaluated during the period of probation. This evaluation will determine if you will be confirmed in your employment in the Company.</p>'),
+  B('<p>3.2 Your probation may, if necessary, be shortened or extended for such period as the Company deems fit.</p>'),
+  B('<p>3.3 In the event that you fail to meet the Company\u2019s expectations of the position, you may be transferred to another department/job position for further probation, or you will not be confirmed and will not be retained in your employment at the end of the probation at full discretion of the Company.</p>'),
+  B('<p>3.4 All other terms, conditions, duties and benefits during your probation are as stipulated in the Employee Handbook.</p>'),
 
-  +'<!--PB-->'
-  +'<p class="l-clause-title">5. Monthly Salary</p>'
-  +'<p>5.1 Your monthly salary shall comprise of a monthly fixed salary and a Monthly Variable Component (MVC).</p>'
-  +'<p style="margin-left:18px"><strong>5.1.1 Introduction of Monthly Variable Component (MVC)</strong><br>'
-  +'The Monthly Variable Component (MVC) is a variable and performance-linked component introduced by the Company as part of the employee\u2019s monthly remuneration structure. The MVC is designed to promote accountability, performance excellence, operational discipline, productivity, teamwork, and alignment with the Company\u2019s mission, values, and Key Performance Indicators (KPI).</p>'
-  +'<p style="margin-left:18px">The MVC amount shall be assessed and determined based on factors including but not limited to: KPI achievement and overall work performance; attendance, punctuality, and work discipline; compliance with Company policies, SOPs, and operational standards; teamwork, professionalism, attitude, and conduct; departmental contribution and operational effectiveness; and Company business performance, sustainability, and operational requirements.</p>'
-  +'<p style="margin-left:18px">Employees whose KPI results, performance standards, conduct, or work attitude are assessed by the Management as below expectation, under improvement status, unsatisfactory, or non-compliant with Company requirements may have their MVC reduced, adjusted, partially withheld, suspended, or not payable for the relevant assessment period at the sole discretion of the Company.</p>'
-  +'<p style="margin-left:18px">The MVC shall not be construed as a fixed, guaranteed, automatic, or permanent salary entitlement and may be reviewed, revised, restructured, increased, reduced, suspended, or withdrawn by the Company from time to time based on operational, financial, performance, disciplinary, or business considerations.</p>'
-  +'<!--PB-->'
-  +'<p>5.2 Your monthly fixed salary shall be '+d.salaryFmt+' ('+d.salaryWords+') which shall be pro-rated on a day-to-day basis in accordance with your number of working days for each particular month.</p>'
-  +'<p>5.3 Your monthly conditional salary shall be dependent on you achieving the target as set out and defined in Clause 6 below (if applicable).</p>'
-  +'<p>5.4 For the avoidance of doubt, your monthly salary shall only comprise of the monthly fixed salary prior to your confirmation of employment.</p>'
-  +'<p>5.5 Your monthly fixed salary together with your monthly conditional salary (which you may only be entitled to after your confirmation of employment) shall be paid to you by the Company on/before the 7th day of each calendar month (if applicable).</p>'
-  +'<p>5.6 Your monthly fixed salary may be reviewed every year by the Company. The Company shall have the absolute right to determine any increase in your monthly fixed salary during such review depending on your job performance and fulfilment of key performance indicators (\u201CKPI\u201D).</p>'
-  +'<p>5.7 In the event you are promoted from your current position by the Company, your monthly fixed salary shall be adjusted accordingly, and the Company shall have the sole discretion to require you to execute a fresh employment letter in respect of your new position in which event this offer of employment shall be superseded and deemed null and void.</p>'
+  BH('<p class="l-clause-title">4. Confirmation</p>'),
+  B('<p>4.1 The Company shall, at the end of your probationary period or any extension thereof and subject to your satisfactory performance, notify you in writing of your confirmation of employment, termination of employment or extension of probation.</p>'),
 
-  +'<!--PB-->'
-  +'<p class="l-clause-title">6. Target (If Applicable)</p>'
-  +'<p>6.1 This clause shall only be applicable upon your receipt of a written confirmation of your employment from the Company.</p>'
-  +'<p>6.2 Upon your confirmation, you may be entitled to payment of a monthly conditional salary which shall be computed and regulated by the Company\u2019s policy as determined by the Company from time to time.</p>'
-  +'<p>6.3 The Company will set, review and adjust the group target level and personal target level to be achieved by you every month. The determination of the group target level and personal target level shall be made by the Company after review and consideration of the period and condition of the market, which may be varied from time to time.</p>'
-  +'<p>6.4 The Company shall reserve its rights to issue any warning in writing should you fail to achieve the target.</p>'
+  BH('<p class="l-clause-title">5. Monthly Salary</p>'),
+  B('<p>5.1 Your monthly salary shall comprise of a monthly fixed salary and a Monthly Variable Component (MVC).</p>'),
+  B('<p style="margin-left:18px"><strong>5.1.1 Introduction of Monthly Variable Component (MVC)</strong><br>The Monthly Variable Component (MVC) is a variable and performance-linked component introduced by the Company as part of the employee\u2019s monthly remuneration structure. The MVC is designed to promote accountability, performance excellence, operational discipline, productivity, teamwork, and alignment with the Company\u2019s mission, values, and Key Performance Indicators (KPI).</p>'),
+  B('<p style="margin-left:18px">The MVC amount shall be assessed and determined based on factors including but not limited to: KPI achievement and overall work performance; attendance, punctuality, and work discipline; compliance with Company policies, SOPs, and operational standards; teamwork, professionalism, attitude, and conduct; departmental contribution and operational effectiveness; and Company business performance, sustainability, and operational requirements.</p>'),
+  B('<p style="margin-left:18px">Employees whose KPI results, performance standards, conduct, or work attitude are assessed by the Management as below expectation, under improvement status, unsatisfactory, or non-compliant with Company requirements may have their MVC reduced, adjusted, partially withheld, suspended, or not payable for the relevant assessment period at the sole discretion of the Company.</p>'),
+  B('<p style="margin-left:18px">The MVC shall not be construed as a fixed, guaranteed, automatic, or permanent salary entitlement and may be reviewed, revised, restructured, increased, reduced, suspended, or withdrawn by the Company from time to time based on operational, financial, performance, disciplinary, or business considerations.</p>'),
+  B('<p>5.2 Your monthly fixed salary shall be '+d.salaryFmt+' ('+d.salaryWords+') which shall be pro-rated on a day-to-day basis in accordance with your number of working days for each particular month.</p>'),
+  B('<p>5.3 Your monthly conditional salary shall be dependent on you achieving the target as set out and defined in Clause 6 below (if applicable).</p>'),
+  B('<p>5.4 For the avoidance of doubt, your monthly salary shall only comprise of the monthly fixed salary prior to your confirmation of employment.</p>'),
+  B('<p>5.5 Your monthly fixed salary together with your monthly conditional salary (which you may only be entitled to after your confirmation of employment) shall be paid to you by the Company on/before the 7th day of each calendar month (if applicable).</p>'),
+  B('<p>5.6 Your monthly fixed salary may be reviewed every year by the Company. The Company shall have the absolute right to determine any increase in your monthly fixed salary during such review depending on your job performance and fulfilment of key performance indicators (\u201CKPI\u201D).</p>'),
+  B('<p>5.7 In the event you are promoted from your current position by the Company, your monthly fixed salary shall be adjusted accordingly, and the Company shall have the sole discretion to require you to execute a fresh employment letter in respect of your new position in which event this offer of employment shall be superseded and deemed null and void.</p>'),
 
-  +'<p class="l-clause-title">7. Salary Increment and Performance Bonus</p>'
-  +'<p>7.1 This clause shall only be applicable upon your receipt of a written confirmation of your employment from the Company.</p>'
-  +'<p>7.2 You may be entitled to salary increment and performance bonus (up to 20% of your monthly fixed salary) during your employment with the Company based on your personal fulfilment and performance, appraisal given by your superior and/or the Company\u2019s management at the end of every quarter of the year and the Company\u2019s performance of the year at the sole discretion of the Company. The Company will adjust your monthly fixed salary (at the Company\u2019s sole discretion) and distribute the performance bonus (if any) once a year.</p>'
-  +'<p>7.3 All other terms, conditions and information in respect of performance and attendance bonus shall be as stipulated in the Employee Handbook.</p>'
+  BH('<p class="l-clause-title">6. Target (If Applicable)</p>'),
+  B('<p>6.1 This clause shall only be applicable upon your receipt of a written confirmation of your employment from the Company.</p>'),
+  B('<p>6.2 Upon your confirmation, you may be entitled to payment of a monthly conditional salary which shall be computed and regulated by the Company\u2019s policy as determined by the Company from time to time.</p>'),
+  B('<p>6.3 The Company will set, review and adjust the group target level and personal target level to be achieved by you every month. The determination of the group target level and personal target level shall be made by the Company after review and consideration of the period and condition of the market, which may be varied from time to time.</p>'),
+  B('<p>6.4 The Company shall reserve its rights to issue any warning in writing should you fail to achieve the target.</p>'),
 
-  +'<p class="l-clause-title">8. Hours of Work and Overtime Pay</p>'
-  +'<p>8.1 Our official hours of business vary depending on the location of your employment and may be varied or modified by the Company depending on business needs with or without prior notice to you.</p>'
-  +'<p>8.2 Our current and general official hours of business are as follows: <strong>Monday \u2013 Friday, 8.30am \u2013 6.30pm. Lunch Hour: 12noon \u2013 1pm</strong> on rotation basis in accordance with the direction of your reporting superior. <em>Note: the above-mentioned general official hours of business may be revised from time to time as deemed necessary by the Company.</em></p>'
-  +'<p>8.3 However, you are expected to work the necessary hours to carry out your responsibilities and to timely complete the tasks assigned to you. You may be required to work on Saturdays, Sundays, Official Holidays and/or after the abovementioned general official hours of business when need arises as directed by your reporting superior.</p>'
-  +'<p>8.4 For the avoidance of doubt, additional overtime payments may not be made, unless otherwise required by the prevailing laws.</p>'
+  BH('<p class="l-clause-title">7. Salary Increment and Performance Bonus</p>'),
+  B('<p>7.1 This clause shall only be applicable upon your receipt of a written confirmation of your employment from the Company.</p>'),
+  B('<p>7.2 You may be entitled to salary increment and performance bonus (up to 20% of your monthly fixed salary) during your employment with the Company based on your personal fulfilment and performance, appraisal given by your superior and/or the Company\u2019s management at the end of every quarter of the year and the Company\u2019s performance of the year at the sole discretion of the Company. The Company will adjust your monthly fixed salary (at the Company\u2019s sole discretion) and distribute the performance bonus (if any) once a year.</p>'),
+  B('<p>7.3 All other terms, conditions and information in respect of performance and attendance bonus shall be as stipulated in the Employee Handbook.</p>'),
 
-  +'<p class="l-clause-title">9. Public Holiday</p>'
-  +'<p>9.1 The Company abides by and follows the gazetted public holidays declared by relevant authorities as determined by the Company before the commencement of each calendar year.</p>'
-  +'<p>9.2 In the event you are required to work on a public holiday, one of the following arrangements shall apply subject to further terms and conditions more specifically defined in the Employee Handbook: (a) the Company will allow you to replace the public holiday with another working day; or (b) you will be entitled to extra pay for your work on a public holiday.</p>'
+  BH('<p class="l-clause-title">8. Hours of Work and Overtime Pay</p>'),
+  B('<p>8.1 Our official hours of business vary depending on the location of your employment and may be varied or modified by the Company depending on business needs with or without prior notice to you.</p>'),
+  B('<p>8.2 Our current and general official hours of business are as follows: <strong>Monday \u2013 Friday, 8.30am \u2013 6.30pm. Lunch Hour: 12noon \u2013 1pm</strong> on rotation basis in accordance with the direction of your reporting superior. <em>Note: the above-mentioned general official hours of business may be revised from time to time as deemed necessary by the Company.</em></p>'),
+  B('<p>8.3 However, you are expected to work the necessary hours to carry out your responsibilities and to timely complete the tasks assigned to you. You may be required to work on Saturdays, Sundays, Official Holidays and/or after the abovementioned general official hours of business when need arises as directed by your reporting superior.</p>'),
+  B('<p>8.4 For the avoidance of doubt, additional overtime payments may not be made, unless otherwise required by the prevailing laws.</p>'),
 
-  +'<!--PB-->'
-  +'<p class="l-clause-title">10. Place of Work and Reservation of Right to Transfer</p>'
-  +'<p>10.1 Your normal place of work shall be at one of the following locations of the Company as determined by the Company from time to time:</p>'
-  +'<ul>'
-  +'<li>No. 63, Jalan Indah 19/1, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
-  +'<li>No. 65, Jalan Indah 19/1, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
-  +'<li>No. 83, Jalan Indah 19/3, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
-  +'<li>No. 27A, Jalan Indah 22/14, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
-  +'<li>No. 61, Jalan Indah 19/1, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
-  +'<li>No. 59, Jalan Indah 19/1, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
-  +'<li>No. 14A &amp; 14B, Jalan Indah 15/1, Taman Bukit Indah, 81200 Johor Bahru, Johor.</li>'
-  +'<li>No. 1, Jalan Indah 10/1, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
-  +'<li>No. 22A &amp; 24A, Jalan Indah 16/5, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
-  +'</ul>'
-  +'<p>10.2 Notwithstanding the above, you may be required to undertake work and/or attend meetings at other premises and/or locations within Malaysia including any work and/or meeting outside of Johor Bahru.</p>'
-  +'<p>10.3 The Company reserves its rights to station you at any other location, premises or places to be determined by the Company. The Company shall notify you either verbally or in writing of any relocation of your place of work whether permanent or temporary in nature.</p>'
-  +'<p>10.4 In addition to the above, the Company further reserves at its absolute discretion the right to instruct you to perform certain works for or to transfer or second you to any department, branch, division, unit, affiliate, company or associate or related company within the group of the Company. This right may also extend to any organization where any of the Company\u2019s directors or shareholders have a shareholding, directorship or interest in.</p>'
-  +'<p>10.5 The Company may also transfer you from time to time for purpose of exposing you to different aspects of its operations. This will be done after evaluating your performance and the ability to perform.</p>'
+  BH('<p class="l-clause-title">9. Public Holiday</p>'),
+  B('<p>9.1 The Company abides by and follows the gazetted public holidays declared by relevant authorities as determined by the Company before the commencement of each calendar year.</p>'),
+  B('<p>9.2 In the event you are required to work on a public holiday, one of the following arrangements shall apply subject to further terms and conditions more specifically defined in the Employee Handbook: (a) the Company will allow you to replace the public holiday with another working day; or (b) you will be entitled to extra pay for your work on a public holiday.</p>'),
 
-  +'<!--PB-->'
-  +'<p class="l-clause-title">11. Duties and Responsibilities</p>'
-  +'<p>11.1 During your employment, you shall:</p>'
-  +'<ul>'
-  +'<li>Carry out your scope of duties as set forth in <strong>'+d.appendixRef+'</strong> in a professional and diligent manner with a high degree of honesty and integrity;</li>'
-  +'<li>Use your best endeavors to achieve the key performance indicator (\u201CKPI\u201D) which will be set forth for you during your working 1st to 3rd month\u2019s period;</li>'
-  +'<li>Attend all in-house training sessions and the Company\u2019s monthly meeting, failing to attend the above-mentioned training and meeting without proper and acceptable reason may be considered as misconduct which may result in termination of service;</li>'
-  +'<li>Devote the whole of your working time, attention and abilities to the business of the Company;</li>'
-  +'<li>Not directly or indirectly carry on or engage in any other business or trades of any nature that is in conflict of nature with the Company\u2019s business without the prior written consent of the Company\u2019s management;</li>'
-  +'<li>Obtain prior written consent from the Company\u2019s management for conducting any work, courses or activities outside your scope of work during your employment with the Company (inclusive of your notice period of termination of employment);</li>'
-  +'<li>Comply with all standard operating procedures, rules, regulations, policies and guidelines (including the Codes of Professional Conduct and Centre\u2019s Policies as set forth in the Employee Handbook) as notified by the Company from time to time;</li>'
-  +'<li>Remain contactable by the Company, your reporting superior, your colleagues, the Company\u2019s customer and/or any other parties related to the Company during your working hours;</li>'
-  +'<li>Diligently exercise such powers and perform such duties as may from time to time be assigned to you;</li>'
-  +'<li>Use your best endeavors to promote, protect, develop and extend the business of the Company and any group, affiliate or subsidiary of the Company;</li>'
-  +'<li>Comply with all reasonable and lawful directions given to you by the Company;</li>'
-  +'<li>Promptly make such reports to your superior on any matters concerning the affairs of the Company as are reasonably required;</li>'
-  +'<li>Report your own wrongdoing and any wrongdoing or proposed wrongdoing of any other employee to your superior immediately; and</li>'
-  +'<li>Promptly inform the Company if your immediate family member, relative, close friend or spouse is or becomes engaged by any competitor of the Company and/or has any conflict of interest with the Company.</li>'
-  +'</ul>'
-  +'<p>11.2 The above list of duties and obligations is non-exhaustive, and the Company reserves its rights to vary, amend and/or make addition to the above. Any variations, amendments and additions made shall be notified to you in writing by the Company.</p>'
+  BH('<p class="l-clause-title">10. Place of Work and Reservation of Right to Transfer</p>'),
+  B('<p>10.1 Your normal place of work shall be at one of the following locations of the Company as determined by the Company from time to time:</p>'),
+  BA('<ul>'
+    +'<li>No. 63, Jalan Indah 19/1, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
+    +'<li>No. 65, Jalan Indah 19/1, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
+    +'<li>No. 83, Jalan Indah 19/3, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
+    +'<li>No. 27A, Jalan Indah 22/14, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
+    +'<li>No. 61, Jalan Indah 19/1, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
+    +'<li>No. 59, Jalan Indah 19/1, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
+    +'<li>No. 14A &amp; 14B, Jalan Indah 15/1, Taman Bukit Indah, 81200 Johor Bahru, Johor.</li>'
+    +'<li>No. 1, Jalan Indah 10/1, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
+    +'<li>No. 22A &amp; 24A, Jalan Indah 16/5, Taman Bukit Indah, 79100 Iskandar Puteri, Johor.</li>'
+    +'</ul>'),
+  B('<p>10.2 Notwithstanding the above, you may be required to undertake work and/or attend meetings at other premises and/or locations within Malaysia including any work and/or meeting outside of Johor Bahru.</p>'),
+  B('<p>10.3 The Company reserves its rights to station you at any other location, premises or places to be determined by the Company. The Company shall notify you either verbally or in writing of any relocation of your place of work whether permanent or temporary in nature.</p>'),
+  B('<p>10.4 In addition to the above, the Company further reserves at its absolute discretion the right to instruct you to perform certain works for or to transfer or second you to any department, branch, division, unit, affiliate, company or associate or related company within the group of the Company. This right may also extend to any organization where any of the Company\u2019s directors or shareholders have a shareholding, directorship or interest in.</p>'),
+  B('<p>10.5 The Company may also transfer you from time to time for purpose of exposing you to different aspects of its operations. This will be done after evaluating your performance and the ability to perform.</p>'),
 
-  +'<!--PB-->'
-  +'<p class="l-clause-title">12. Working Attire</p>'
-  +'<p>12.1 You are required to attend work in formal attire upon your commencement of employment with the Company at all material times. You may be provided with the Company\u2019s uniform depending on your job nature. If you have been provided with the Company\u2019s uniform, you are required to wear the Company\u2019s uniform during working hours.</p>'
-  +'<p>12.2 You should dress with decorum at all times. Wearing tank tops, jeans, shorts/Bermudas, sandals, track shoes and any other clothing deemed as revealing, inappropriate or unprofessional by the Company are strictly prohibited.</p>'
-  +'<p>12.3 In the event of resignation and/or termination, you shall return to the Company the uniform provided and/or any other articles or assets belonging to the Company (if any) within seven (7) days from your last day of employment, failing which the Company shall be entitled to impose and you shall be liable to pay to the Company a sum of RM100.00 for each uniform held by you (\u201Cthe Penalty\u201D) or at any other sum for any other Company\u2019s assets as determined by the Company.</p>'
-  +'<p>12.4 For the avoidance of doubt, the Company shall be entitled and authorized to deduct from your salary and/or any other payment to be made to you for the Penalty or any part thereof, if any.</p>'
+  BH('<p class="l-clause-title">11. Duties and Responsibilities</p>'),
+  B('<p>11.1 During your employment, you shall:</p>'),
+  BA('<ul>'
+    +'<li>Carry out your scope of duties as set forth in <strong>'+d.appendixRef+'</strong> in a professional and diligent manner with a high degree of honesty and integrity;</li>'
+    +'<li>Use your best endeavors to achieve the key performance indicator (\u201CKPI\u201D) which will be set forth for you during your working 1st to 3rd month\u2019s period;</li>'
+    +'<li>Attend all in-house training sessions and the Company\u2019s monthly meeting, failing to attend the above-mentioned training and meeting without proper and acceptable reason may be considered as misconduct which may result in termination of service;</li>'
+    +'<li>Devote the whole of your working time, attention and abilities to the business of the Company;</li>'
+    +'<li>Not directly or indirectly carry on or engage in any other business or trades of any nature that is in conflict of nature with the Company\u2019s business without the prior written consent of the Company\u2019s management;</li>'
+    +'<li>Obtain prior written consent from the Company\u2019s management for conducting any work, courses or activities outside your scope of work during your employment with the Company (inclusive of your notice period of termination of employment);</li>'
+    +'<li>Comply with all standard operating procedures, rules, regulations, policies and guidelines (including the Codes of Professional Conduct and Centre\u2019s Policies as set forth in the Employee Handbook) as notified by the Company from time to time;</li>'
+    +'<li>Remain contactable by the Company, your reporting superior, your colleagues, the Company\u2019s customer and/or any other parties related to the Company during your working hours;</li>'
+    +'<li>Diligently exercise such powers and perform such duties as may from time to time be assigned to you;</li>'
+    +'<li>Use your best endeavors to promote, protect, develop and extend the business of the Company and any group, affiliate or subsidiary of the Company;</li>'
+    +'<li>Comply with all reasonable and lawful directions given to you by the Company;</li>'
+    +'<li>Promptly make such reports to your superior on any matters concerning the affairs of the Company as are reasonably required;</li>'
+    +'<li>Report your own wrongdoing and any wrongdoing or proposed wrongdoing of any other employee to your superior immediately; and</li>'
+    +'<li>Promptly inform the Company if your immediate family member, relative, close friend or spouse is or becomes engaged by any competitor of the Company and/or has any conflict of interest with the Company.</li>'
+    +'</ul>'),
+  B('<p>11.2 The above list of duties and obligations is non-exhaustive, and the Company reserves its rights to vary, amend and/or make addition to the above. Any variations, amendments and additions made shall be notified to you in writing by the Company.</p>'),
 
-  +'<p class="l-clause-title">13. Perkeso &amp; Employment Insurance System (\u201CEIS\u201D)</p>'
-  +'<p>13.1 The Company will make the necessary contribution to Perkeso and EIS at the prevailing prescribed rate as determined by the relevant authorities during your employment with the Company.</p>'
+  BH('<p class="l-clause-title">12. Working Attire</p>'),
+  B('<p>12.1 You are required to attend work in formal attire upon your commencement of employment with the Company at all material times. You may be provided with the Company\u2019s uniform depending on your job nature. If you have been provided with the Company\u2019s uniform, you are required to wear the Company\u2019s uniform during working hours.</p>'),
+  B('<p>12.2 You should dress with decorum at all times. Wearing tank tops, jeans, shorts/Bermudas, sandals, track shoes and any other clothing deemed as revealing, inappropriate or unprofessional by the Company are strictly prohibited.</p>'),
+  B('<p>12.3 In the event of resignation and/or termination, you shall return to the Company the uniform provided and/or any other articles or assets belonging to the Company (if any) within seven (7) days from your last day of employment, failing which the Company shall be entitled to impose and you shall be liable to pay to the Company a sum of RM100.00 for each uniform held by you (\u201Cthe Penalty\u201D) or at any other sum for any other Company\u2019s assets as determined by the Company.</p>'),
+  B('<p>12.4 For the avoidance of doubt, the Company shall be entitled and authorized to deduct from your salary and/or any other payment to be made to you for the Penalty or any part thereof, if any.</p>'),
 
-  +'<p class="l-clause-title">14. Employees Provident Fund (\u201CEPF\u201D)</p>'
-  +'<p>14.1 Subject to the prevailing law and guideline governing the EPF, the Company will pay a certain percentage of your emoluments to the EPF. Similarly, your contribution to EPF shall be at a statutory percentage of your emoluments subject to the prevailing law and guidelines.</p>'
-  +'<p>14.2 The Company reserves the right to vary the percentage of contribution in accordance with the prevailing laws.</p>'
+  BH('<p class="l-clause-title">13. Perkeso &amp; Employment Insurance System (\u201CEIS\u201D)</p>'),
+  B('<p>13.1 The Company will make the necessary contribution to Perkeso and EIS at the prevailing prescribed rate as determined by the relevant authorities during your employment with the Company.</p>'),
 
-  +'<!--PB-->'
-  +'<p class="l-clause-title">15. Annual Leave</p>'
-  +'<p>15.1 You are not allowed to take annual leave during your probation. Absence from duty during your probation without a valid medical certificate will be considered as you having taken unpaid leave.</p>'
-  +'<p>15.2 Nonetheless, subject to authorization granted by your superior, manager, the management of the Company or the head of department, you may take your accumulated paid annual leave (earned by you on a pro rata basis for each complete month of service during your probation) upon your confirmation of employment and after the end of your probationary period.</p>'
-  +'<p>15.3 You are entitled to paid annual leave as stated below:</p>'
-  +'<table><tr><th>Length of Continuous Employment</th><th>Entitlement to Paid Annual Leave</th></tr>'
-  +'<tr><td>&lt; 2 years</td><td>8 days per year</td></tr>'
-  +'<tr><td>\u2265 2 years but &lt; 5 years</td><td>12 days per year</td></tr>'
-  +'<tr><td>\u2265 5 years</td><td>16 days per year</td></tr></table>'
-  +'<p>For the avoidance of doubt, for each respective year of service which you are entitled to the above-mentioned paid annual leave, such entitlement shall be computed on a pro rata basis for each complete month of service during the relevant year.</p>'
-  +'<p>15.4 All annual leave authorized to be carried forward has to be taken no later than the end of the following new calendar year, failing which such unutilized annual leave will automatically cease to be entitled thereto without further notice on you.</p>'
-  +'<p>15.5 On termination of your employment, the Company may either require you to take any unused or accrued annual leave entitlement during any notice period or make a payment in lieu of that entitlement. If the Company terminates your employment due to your fault, you will not be entitled to any such payment in lieu in respect of any accrued annual leave entitlement.</p>'
-  +'<p>15.6 If you have taken more annual leave than your accrued entitlement, you will be required to reimburse the Company in respect of the excess days taken and the Company is authorized to deduct the appropriate amount from any sums due to you, to the extent permitted by the prevailing law.</p>'
+  BH('<p class="l-clause-title">14. Employees Provident Fund (\u201CEPF\u201D)</p>'),
+  B('<p>14.1 Subject to the prevailing law and guideline governing the EPF, the Company will pay a certain percentage of your emoluments to the EPF. Similarly, your contribution to EPF shall be at a statutory percentage of your emoluments subject to the prevailing law and guidelines.</p>'),
+  B('<p>14.2 The Company reserves the right to vary the percentage of contribution in accordance with the prevailing laws.</p>'),
 
-  +'<!--PB-->'
-  +'<p class="l-clause-title">16. Other Leaves</p>'
-  +'<p>16.1 Your entitlement to all other leaves shall be as stipulated in the Employee Handbook.</p>'
+  BH('<p class="l-clause-title">15. Annual Leave</p>'),
+  B('<p>15.1 You are not allowed to take annual leave during your probation. Absence from duty during your probation without a valid medical certificate will be considered as you having taken unpaid leave.</p>'),
+  B('<p>15.2 Nonetheless, subject to authorization granted by your superior, manager, the management of the Company or the head of department, you may take your accumulated paid annual leave (earned by you on a pro rata basis for each complete month of service during your probation) upon your confirmation of employment and after the end of your probationary period.</p>'),
+  B('<p>15.3 You are entitled to paid annual leave as stated below:</p>'),
+  BA('<table><tr><th>Length of Continuous Employment</th><th>Entitlement to Paid Annual Leave</th></tr>'
+    +'<tr><td>&lt; 2 years</td><td>8 days per year</td></tr>'
+    +'<tr><td>\u2265 2 years but &lt; 5 years</td><td>12 days per year</td></tr>'
+    +'<tr><td>\u2265 5 years</td><td>16 days per year</td></tr></table>'),
+  B('<p>For the avoidance of doubt, for each respective year of service which you are entitled to the above-mentioned paid annual leave, such entitlement shall be computed on a pro rata basis for each complete month of service during the relevant year.</p>'),
+  B('<p>15.4 All annual leave authorized to be carried forward has to be taken no later than the end of the following new calendar year, failing which such unutilized annual leave will automatically cease to be entitled thereto without further notice on you.</p>'),
+  B('<p>15.5 On termination of your employment, the Company may either require you to take any unused or accrued annual leave entitlement during any notice period or make a payment in lieu of that entitlement. If the Company terminates your employment due to your fault, you will not be entitled to any such payment in lieu in respect of any accrued annual leave entitlement.</p>'),
+  B('<p>15.6 If you have taken more annual leave than your accrued entitlement, you will be required to reimburse the Company in respect of the excess days taken and the Company is authorized to deduct the appropriate amount from any sums due to you, to the extent permitted by the prevailing law.</p>'),
 
-  +'<p class="l-clause-title">17. Confidential Information</p>'
-  +'<p>17.1 All information relating to the Company and clients of the Company which you learn in the course of your employment is secret and confidential and must not be discussed or disclosed to any unauthorized person. No copies of related documents shall be removed, copied or transferred in any form upon termination of your employment.</p>'
-  +'<p>17.2 In the event of any breach and/or non-compliance on your part of the above, the Company shall be entitled to impose and demand from you the sum of RM50,000.00 as agreed liquidated damages for the loss, damage or costs incurred by the Company as a result of your breach.</p>'
-  +'<p>17.3 Any failure, negligence and/or refusal on your part to pay the abovementioned sum upon demand shall entitle the Company to commence legal proceedings against you, in which event you shall be liable to all costs, expenses and fees including legal fees on a full indemnity basis.</p>'
+  BH('<p class="l-clause-title">16. Other Leaves</p>'),
+  B('<p>16.1 Your entitlement to all other leaves shall be as stipulated in the Employee Handbook.</p>'),
 
-  +'<p class="l-clause-title">18. Other Employment</p>'
-  +'<p>18.1 You shall not undertake or consent to be a director, partner, contractor or employee of any other business or organization without the prior written consent of the Company at its sole discretion. You are required to maintain and prioritize the Company\u2019s interests at all times.</p>'
+  BH('<p class="l-clause-title">17. Confidential Information</p>'),
+  B('<p>17.1 All information relating to the Company and clients of the Company which you learn in the course of your employment is secret and confidential and must not be discussed or disclosed to any unauthorized person. No copies of related documents shall be removed, copied or transferred in any form upon termination of your employment.</p>'),
+  B('<p>17.2 In the event of any breach and/or non-compliance on your part of the above, the Company shall be entitled to impose and demand from you the sum of RM50,000.00 as agreed liquidated damages for the loss, damage or costs incurred by the Company as a result of your breach.</p>'),
+  B('<p>17.3 Any failure, negligence and/or refusal on your part to pay the abovementioned sum upon demand shall entitle the Company to commence legal proceedings against you, in which event you shall be liable to all costs, expenses and fees including legal fees on a full indemnity basis.</p>'),
 
-  +'<p class="l-clause-title">19. Working Attitude and Behavior</p>'
-  +'<p>19.1 You shall at all times conduct yourself in a polite and respectable manner whether in your communication with your superiors, colleagues, the Company\u2019s business partners, other employees and/or customers of the Company.</p>'
-  +'<p>19.2 The Company reserves its rights to take action after due inquiry in the event of any manner, behaviour, attitude and/or action which in the opinion of the Company is bad, rude, unreasonable and/or intolerable, including: termination or dismissal without notice; issuance of warning letter; demotion; deduction of performance bonus; suspension without pay (not exceeding two (2) weeks); or any other punishment/penalty as the Company deems fit.</p>'
+  BH('<p class="l-clause-title">18. Other Employment</p>'),
+  B('<p>18.1 You shall not undertake or consent to be a director, partner, contractor or employee of any other business or organization without the prior written consent of the Company at its sole discretion. You are required to maintain and prioritize the Company\u2019s interests at all times.</p>'),
 
-  +'<p class="l-clause-title">20. Warning Letter</p>'
-  +'<p>20.1 The terms and conditions in respect of issuance of warning letter(s) by the Company are as stipulated in the Employee Handbook.</p>'
+  BH('<p class="l-clause-title">19. Working Attitude and Behavior</p>'),
+  B('<p>19.1 You shall at all times conduct yourself in a polite and respectable manner whether in your communication with your superiors, colleagues, the Company\u2019s business partners, other employees and/or customers of the Company.</p>'),
+  B('<p>19.2 The Company reserves its rights to take action after due inquiry in the event of any manner, behaviour, attitude and/or action which in the opinion of the Company is bad, rude, unreasonable and/or intolerable, including: termination or dismissal without notice; issuance of warning letter; demotion; deduction of performance bonus; suspension without pay (not exceeding two (2) weeks); or any other punishment/penalty as the Company deems fit.</p>'),
 
-  +'<!--PB-->'
-  +'<p class="l-clause-title">21. Notice and Termination</p>'
-  +'<p><em>While serving the probationary period</em></p>'
-  +'<p>21.1 If you decide to leave the Company during your probationary period, you are to give one (1) calendar month prior written notice, or the equivalent of one (1) calendar month salary in lieu of notice.</p>'
-  +'<p>21.2 Similarly, if the Company wishes to terminate your employment during your probationary period, you will be given one (1) calendar month prior written notice, or the equivalent salary in lieu of notice, unless the termination is due to a fault, misconduct and/or misbehaviour of high severity, in which case the Company may give a notice of up to one (1) week or less (or salary in lieu thereof), at its sole discretion.</p>'
-  +'<p><em>On confirmation after the probation</em></p>'
-  +'<p>21.3 You are to give prior written notice, or the equivalent monthly salary in lieu of notice as per Table A below unless a shorter period is expressly agreed upon by management in writing. Unutilized leave may not be used to shorten this notice period.</p>'
-  +'<table><tr><th>Period of Employment (Upon Confirmation)</th><th>Length of Notice of Termination</th></tr>'
-  +'<tr><td>&lt; 2 years</td><td>4 weeks</td></tr>'
-  +'<tr><td>\u2265 2 years but &lt; 5 years</td><td>6 weeks</td></tr>'
-  +'<tr><td>\u2265 5 years</td><td>12 weeks</td></tr></table>'
-  +'<p>21.4 If we wish to terminate your employment, you will be given prior written notice, or the equivalent monthly salary in lieu of notice pursuant to Table A.</p>'
-  +'<p>21.5 In the event of resignation, you shall not instigate or entice and/or attempt to instigate or entice other employee or colleague to resign, failing which the Company reserves its rights to commence legal proceeding against you.</p>'
-  +'<p><em>Termination on grounds of misconduct, dereliction of duties, breach of trust</em></p>'
-  +'<p>21.6 We may terminate your employment immediately in the event of misconduct, dereliction of your duties and responsibilities, breach of trust, gross misconduct, fraudulent or dishonest act, conviction of any criminal offence, provision of false or misleading information, bankruptcy, unsound mind, or continuous unauthorized absence from work for 2 days. In such case, your salary and entitlements will be paid up to the time of termination only.</p>'
-  +'<p>21.7 The Company shall further be entitled to terminate your employment without pay in the event the Company has issued warning letter(s) to you, at its sole discretion as to severity and number of warnings.</p>'
+  BH('<p class="l-clause-title">20. Warning Letter</p>'),
+  B('<p>20.1 The terms and conditions in respect of issuance of warning letter(s) by the Company are as stipulated in the Employee Handbook.</p>'),
 
-  +'<!--PB-->'
-  +'<p class="l-clause-title">22. Retirement</p>'
-  +'<p>22.1 Retirement will be attaining the age of 60 years old.</p>'
+  BH('<p class="l-clause-title">21. Notice and Termination</p>'),
+  B('<p><em>While serving the probationary period</em></p>'),
+  B('<p>21.1 If you decide to leave the Company during your probationary period, you are to give one (1) calendar month prior written notice, or the equivalent of one (1) calendar month salary in lieu of notice.</p>'),
+  B('<p>21.2 Similarly, if the Company wishes to terminate your employment during your probationary period, you will be given one (1) calendar month prior written notice, or the equivalent salary in lieu of notice, unless the termination is due to a fault, misconduct and/or misbehaviour of high severity, in which case the Company may give a notice of up to one (1) week or less (or salary in lieu thereof), at its sole discretion.</p>'),
+  B('<p><em>On confirmation after the probation</em></p>'),
+  B('<p>21.3 You are to give prior written notice, or the equivalent monthly salary in lieu of notice as per Table A below unless a shorter period is expressly agreed upon by management in writing. Unutilized leave may not be used to shorten this notice period.</p>'),
+  BA('<table><tr><th>Period of Employment (Upon Confirmation)</th><th>Length of Notice of Termination</th></tr>'
+    +'<tr><td>&lt; 2 years</td><td>4 weeks</td></tr>'
+    +'<tr><td>\u2265 2 years but &lt; 5 years</td><td>6 weeks</td></tr>'
+    +'<tr><td>\u2265 5 years</td><td>12 weeks</td></tr></table>'),
+  B('<p>21.4 If we wish to terminate your employment, you will be given prior written notice, or the equivalent monthly salary in lieu of notice pursuant to Table A.</p>'),
+  B('<p>21.5 In the event of resignation, you shall not instigate or entice and/or attempt to instigate or entice other employee or colleague to resign, failing which the Company reserves its rights to commence legal proceeding against you.</p>'),
+  B('<p><em>Termination on grounds of misconduct, dereliction of duties, breach of trust</em></p>'),
+  B('<p>21.6 We may terminate your employment immediately in the event of misconduct, dereliction of your duties and responsibilities, breach of trust, gross misconduct, fraudulent or dishonest act, conviction of any criminal offence, provision of false or misleading information, bankruptcy, unsound mind, or continuous unauthorized absence from work for 2 days. In such case, your salary and entitlements will be paid up to the time of termination only.</p>'),
+  B('<p>21.7 The Company shall further be entitled to terminate your employment without pay in the event the Company has issued warning letter(s) to you, at its sole discretion as to severity and number of warnings.</p>'),
 
-  +'<p class="l-clause-title">23. Force Majeure</p>'
-  +'<p>23.1 The Company shall not be liable to you for any non-performance or delay in performance of any of the Company\u2019s obligations (including non-payment of salary) resulting from any act of God, flood, fire, war, riot, civil commotion, natural catastrophe, strike, act of government, change of law, epidemic or pandemic (including Covid-19) and related government measures, or any other supervening event beyond the reasonable control of the Company (\u201CForce Majeure Event\u201D).</p>'
-  +'<p>23.2 The Company shall have the right, upon twenty-four (24) hours prior notice to you, to suspend your services for the duration of such Force Majeure Event, during which no compensation, salary, allowance or payment shall accrue to you.</p>'
+  BH('<p class="l-clause-title">22. Retirement</p>'),
+  B('<p>22.1 Retirement will be attaining the age of 60 years old.</p>'),
 
-  +'<p class="l-clause-title">24. Company\u2019s Property</p>'
-  +'<p>24.1 You will be required to return all keys, uniforms, accessories, access cards, passes, manuals, computers, documents and other materials remaining the Company\u2019s property upon termination of your employment. Failure to comply shall entitle the Company to charge you a sum equivalent to your one (1) month salary or the cost of the Company\u2019s assets (whichever higher) as compensation and penalty.</p>'
+  BH('<p class="l-clause-title">23. Force Majeure</p>'),
+  B('<p>23.1 The Company shall not be liable to you for any non-performance or delay in performance of any of the Company\u2019s obligations (including non-payment of salary) resulting from any act of God, flood, fire, war, riot, civil commotion, natural catastrophe, strike, act of government, change of law, epidemic or pandemic (including Covid-19) and related government measures, or any other supervening event beyond the reasonable control of the Company (\u201CForce Majeure Event\u201D).</p>'),
+  B('<p>23.2 The Company shall have the right, upon twenty-four (24) hours prior notice to you, to suspend your services for the duration of such Force Majeure Event, during which no compensation, salary, allowance or payment shall accrue to you.</p>'),
 
-  +'<p class="l-clause-title">25. Employee Handbook</p>'
-  +'<p>25.1 In addition to the terms set out in this offer of employment, there are other policies, rules, regulations and terms which govern the employees of the Company in the Employee Handbook. By signing this offer of employment, you hereby agree to comply and be bound by the contents of the Employee Handbook.</p>'
+  BH('<p class="l-clause-title">24. Company\u2019s Property</p>'),
+  B('<p>24.1 You will be required to return all keys, uniforms, accessories, access cards, passes, manuals, computers, documents and other materials remaining the Company\u2019s property upon termination of your employment. Failure to comply shall entitle the Company to charge you a sum equivalent to your one (1) month salary or the cost of the Company\u2019s assets (whichever higher) as compensation and penalty.</p>'),
 
-  +'<p class="l-clause-title">26. Severability</p>'
-  +'<p>26.1 Each clause hereof shall be deemed to be independent and if any one or more of the clauses shall be invalid, illegal or unenforceable, the validity, legality and enforceability of the remaining clauses shall not be affected or impaired.</p>'
+  BH('<p class="l-clause-title">25. Employee Handbook</p>'),
+  B('<p>25.1 In addition to the terms set out in this offer of employment, there are other policies, rules, regulations and terms which govern the employees of the Company in the Employee Handbook. By signing this offer of employment, you hereby agree to comply and be bound by the contents of the Employee Handbook.</p>'),
 
-  +'<p class="l-clause-title">27. Other Terms, Conditions, Rules and Regulations</p>'
-  +'<p>27.1 The provisions of this offer of employment along with the Employee Handbook and other policies issued by the Company shall constitute further terms and conditions of your employment.</p>'
+  BH('<p class="l-clause-title">26. Severability</p>'),
+  B('<p>26.1 Each clause hereof shall be deemed to be independent and if any one or more of the clauses shall be invalid, illegal or unenforceable, the validity, legality and enforceability of the remaining clauses shall not be affected or impaired.</p>'),
 
-  +'<p class="l-clause-title">28. Company\u2019s Right</p>'
-  +'<p>28.1 The Company reserves its rights to add, vary, amend and/or revise the terms and conditions of this offer of employment from time to time as determined necessary by the Company. Any such addition, variation, amendment and/or revision shall be effective and binding upon the Company\u2019s written notification to you of the same.</p>'
+  BH('<p class="l-clause-title">27. Other Terms, Conditions, Rules and Regulations</p>'),
+  B('<p>27.1 The provisions of this offer of employment along with the Employee Handbook and other policies issued by the Company shall constitute further terms and conditions of your employment.</p>'),
 
-  +'<p class="l-clause-title">29. Copyright</p>'
-  +'<p>29.1 All contents in this Offer of Employment are protected by copyright law and owned by the Company or its affiliated companies. Copyright \u00A9 2023 Myeden Group Sdn Bhd. All rights reserved. No part of this Offer of Employment may be copied, photocopied, reproduced, translated or reduced to any electronic medium without specific permission of the Company.</p>'
+  BH('<p class="l-clause-title">28. Company\u2019s Right</p>'),
+  B('<p>28.1 The Company reserves its rights to add, vary, amend and/or revise the terms and conditions of this offer of employment from time to time as determined necessary by the Company. Any such addition, variation, amendment and/or revision shall be effective and binding upon the Company\u2019s written notification to you of the same.</p>'),
 
-  +'<!--PB-->'
-  +'<p class="l-clause-title">30. Acceptance</p>'
-  +'<p>30.1 With acceptance of this offer of employment, you consent to allow the Company to collect, record, store, use, process and disclose your personal data as defined by the Personal Data Protection Act 2010, for purposes related to your employment, including disclosure to insurance agents, authorities, hospitals, clinics, banks, and third parties for background and credential verification.</p>'
-  +'<p>30.2 Please confirm your acceptance of this offer of employment by signing and returning the enclosed duplicate copy of the same. This offer will lapse and you will be deemed no longer interested in our offer of this position to you if you fail to sign and return the duplicate of this offer of employment to us within three (3) working days from the date of this offer of employment.</p>'
+  BH('<p class="l-clause-title">29. Copyright</p>'),
+  B('<p>29.1 All contents in this Offer of Employment are protected by copyright law and owned by the Company or its affiliated companies. Copyright \u00A9 2023 Myeden Group Sdn Bhd. All rights reserved. No part of this Offer of Employment may be copied, photocopied, reproduced, translated or reduced to any electronic medium without specific permission of the Company.</p>'),
 
-  +'<p style="margin-top:14px">We look forward to welcoming you to the Company and know that you will find the Company a rewarding place to work.</p>'
-  +'<p>Yours sincerely,</p>'
-  +'<p>for and on behalf of <strong>MYEDEN GROUP SDN BHD</strong></p>'
-  +'<div class="letter-sig-line"></div>'
-  +'<p>Irene Tan<br>CEO of MyEden Group Sdn Bhd</p>';
+  BH('<p class="l-clause-title">30. Acceptance</p>'),
+  B('<p>30.1 With acceptance of this offer of employment, you consent to allow the Company to collect, record, store, use, process and disclose your personal data as defined by the Personal Data Protection Act 2010, for purposes related to your employment, including disclosure to insurance agents, authorities, hospitals, clinics, banks, and third parties for background and credential verification.</p>'),
+  B('<p>30.2 Please confirm your acceptance of this offer of employment by signing and returning the enclosed duplicate copy of the same. This offer will lapse and you will be deemed no longer interested in our offer of this position to you if you fail to sign and return the duplicate of this offer of employment to us within three (3) working days from the date of this offer of employment.</p>'),
+
+  B('<p style="margin-top:14px">We look forward to welcoming you to the Company and know that you will find the Company a rewarding place to work.</p>'),
+  B('<p>Yours sincerely,</p>'),
+  B('<p>for and on behalf of <strong>MYEDEN GROUP SDN BHD</strong></p>'),
+  BA('<div class="letter-sig-line"></div><p>Irene Tan<br>CEO of MyEden Group Sdn Bhd</p>')
+  ];
 }
 
-function buildAcceptanceHTML(d){
-  return ''
-  +'<h3>Acceptance of Offer</h3>'
-  +'<p>I, '+d.name+', NRIC: '+d.ic+', have read and understood the above terms and conditions, and hereby confirm my acceptance of all the terms and conditions herein and any amendments made hereafter. I further confirm that I will comply with the same.</p>'
-  +'<p>I hereby confirm and acknowledge that I am physically, mentally and medically fit for employment in this position.</p>'
-  +'<p style="margin-top:20px">Name: '+d.name+'</p>'
-  +'<p>NRIC No.: '+d.ic+'</p>'
-  +'<p>Date: ____________________</p>';
+function buildAcceptanceBlocks(d){
+  return [
+  BH('<h3>Acceptance of Offer</h3>'),
+  B('<p>I, '+d.name+', NRIC: '+d.ic+', have read and understood the above terms and conditions, and hereby confirm my acceptance of all the terms and conditions herein and any amendments made hereafter. I further confirm that I will comply with the same.</p>'),
+  B('<p>I hereby confirm and acknowledge that I am physically, mentally and medically fit for employment in this position.</p>'),
+  BA('<p style="margin-top:20px">Name: '+d.name+'</p><p>NRIC No.: '+d.ic+'</p><p>Date: ____________________</p>')
+  ];
 }
 
-function buildAppendixHTML(type, mgmtAppendixText){
+function buildAppendixBlocks(type, mgmtAppendixText){
   if(type==='teacher'){
-    return ''
-    +'<h3>Appendix 1 \u2013 Basic Scope of Duties</h3>'
-    +'<p><strong>1. Main Duties</strong><br>Your main duty is to take full care of the children designated to you, from checking in to checking out of Centre\u2019s premises including the well-being of the children, checking of school bags for homework, guidance of homework, meals and shower.</p>'
-    +'<p><strong>2. Preparation of Materials</strong><br>You are required to prepare any materials that are needed to carry out any lessons conducted in the Centre. Materials should be prepared at least one week beforehand.</p>'
-    +'<p><strong>3. Preparation of the Environment</strong><br>You are required to set up the environment daily before the children arrive, including the arrangement of furniture, mats and materials at both outdoor and indoor areas.</p>'
-    +'<p><strong>4. Homework Guidance</strong><br>Finishing homework is the first priority for the children. You are required to ensure children finish their homework before going home, and convey any unfinished homework to parents accordingly.</p>'
-    +'<p><strong>5. Cleaning Up</strong><br>You are required to clean up both indoor and outdoor environments, including shelves and materials, keeping children\u2019s safety and hygiene in mind.</p>'
-    +'<p><strong>6. Training, Coaching and Operation Brief Sessions</strong><br>You are required to attend any training, coaching, and monthly Operation Brief Sessions provided by the company. Your attitude, attendance and participation in these sessions will play an important part in your Bonus.</p>'
-    +'<p><strong>7. Be Alert</strong><br>Always be highly alert to the condition of the environment and the children\u2019s behaviours to ensure the children\u2019s safety at all times, and remove any hazards immediately.</p>'
-    +'<!--PB-->'
-    +'<h3>Appendix 2 \u2013 Codes of Professional Conduct and Centre\u2019s Policies</h3>'
-    +'<p><strong>1. Be a Role Model</strong><br>Always remember that children model after adults. Hence, always be a role model in terms of speech and actions.</p>'
-    +'<p><strong>2. Mobile Phones</strong><br>Usage of mobile phone for personal matters is not allowed during work time. Long conversations or constant use of phone for messaging during working hours is deemed inappropriate.</p>'
-    +'<p><strong>3. Attire and Appearance</strong><br>Always wear the designated uniform provided by the Centre. Appropriate apparel excludes tank-tops; pants, dresses or skirts longer than the knee and shoes covering the toes are appropriate.</p>'
-    +'<p><strong>4. Grace and Courtesy</strong><br>Always bend down and be at the same level to make eye contact with the children when greeting or communicating with them.</p>'
-    +'<p><strong>5. Be a Positive Reinforcer</strong><br>Never put down a child by saying he/she is wrong. Always use positive or neutral language to direct the child.</p>'
-    +'<p><strong>6. Rewards and Punishment</strong><br>Material rewards are not encouraged. A mere \u201CGood\u201D or \u201CWell done\u201D is sufficient. Physical punishment is prohibited; a child needing to calm down may sit alone on the \u201Cthinking chair\u201D for less than 10 minutes.</p>'
-    +'<p><strong>7. Discussion About Children</strong><br>Do not discuss any children\u2019s work and behaviour among staff in the presence of the children.</p>'
-    +'<p><strong>8. Integrity, Diligence, and Initiatives</strong><br>The Centre values integrity, diligence and initiative. Any theft or dishonesty shall not be tolerated.</p>'
-    +'<p><strong>9. Love the Children</strong><br>Staff are strongly encouraged to build a trusting relationship with the children and not be biased against any child.</p>';
+    return [
+    BH('<h3>Appendix 1 \u2013 Basic Scope of Duties</h3>'),
+    B('<p><strong>1. Main Duties</strong><br>Your main duty is to take full care of the children designated to you, from checking in to checking out of Centre\u2019s premises including the well-being of the children, checking of school bags for homework, guidance of homework, meals and shower.</p>'),
+    B('<p><strong>2. Preparation of Materials</strong><br>You are required to prepare any materials that are needed to carry out any lessons conducted in the Centre. Materials should be prepared at least one week beforehand.</p>'),
+    B('<p><strong>3. Preparation of the Environment</strong><br>You are required to set up the environment daily before the children arrive, including the arrangement of furniture, mats and materials at both outdoor and indoor areas.</p>'),
+    B('<p><strong>4. Homework Guidance</strong><br>Finishing homework is the first priority for the children. You are required to ensure children finish their homework before going home, and convey any unfinished homework to parents accordingly.</p>'),
+    B('<p><strong>5. Cleaning Up</strong><br>You are required to clean up both indoor and outdoor environments, including shelves and materials, keeping children\u2019s safety and hygiene in mind.</p>'),
+    B('<p><strong>6. Training, Coaching and Operation Brief Sessions</strong><br>You are required to attend any training, coaching, and monthly Operation Brief Sessions provided by the company. Your attitude, attendance and participation in these sessions will play an important part in your Bonus.</p>'),
+    B('<p><strong>7. Be Alert</strong><br>Always be highly alert to the condition of the environment and the children\u2019s behaviours to ensure the children\u2019s safety at all times, and remove any hazards immediately.</p>'),
+    BH('<h3>Appendix 2 \u2013 Codes of Professional Conduct and Centre\u2019s Policies</h3>'),
+    B('<p><strong>1. Be a Role Model</strong><br>Always remember that children model after adults. Hence, always be a role model in terms of speech and actions.</p>'),
+    B('<p><strong>2. Mobile Phones</strong><br>Usage of mobile phone for personal matters is not allowed during work time. Long conversations or constant use of phone for messaging during working hours is deemed inappropriate.</p>'),
+    B('<p><strong>3. Attire and Appearance</strong><br>Always wear the designated uniform provided by the Centre. Appropriate apparel excludes tank-tops; pants, dresses or skirts longer than the knee and shoes covering the toes are appropriate.</p>'),
+    B('<p><strong>4. Grace and Courtesy</strong><br>Always bend down and be at the same level to make eye contact with the children when greeting or communicating with them.</p>'),
+    B('<p><strong>5. Be a Positive Reinforcer</strong><br>Never put down a child by saying he/she is wrong. Always use positive or neutral language to direct the child.</p>'),
+    B('<p><strong>6. Rewards and Punishment</strong><br>Material rewards are not encouraged. A mere \u201CGood\u201D or \u201CWell done\u201D is sufficient. Physical punishment is prohibited; a child needing to calm down may sit alone on the \u201Cthinking chair\u201D for less than 10 minutes.</p>'),
+    B('<p><strong>7. Discussion About Children</strong><br>Do not discuss any children\u2019s work and behaviour among staff in the presence of the children.</p>'),
+    B('<p><strong>8. Integrity, Diligence, and Initiatives</strong><br>The Centre values integrity, diligence and initiative. Any theft or dishonesty shall not be tolerated.</p>'),
+    B('<p><strong>9. Love the Children</strong><br>Staff are strongly encouraged to build a trusting relationship with the children and not be biased against any child.</p>')
+    ];
   }
-  // Management
   var body = mgmtAppendixText && mgmtAppendixText.trim()
     ? escNL(mgmtAppendixText)
     : '<span style="color:#c62828;font-style:italic">[Job-specific scope of duties to be added by HR for this role]</span>';
-  return ''
-  +'<h3>Appendix 1 \u2013 Basic Scope of Duties</h3>'
-  +'<p>'+body+'</p>';
+  return [
+  BH('<h3>Appendix 1 \u2013 Basic Scope of Duties</h3>'),
+  B('<p>'+body+'</p>')
+  ];
 }
+
+// ── PAGINATION ENGINE ────────────────────────────────────────────────────
+// Page geometry must match the @page rule injected by printLetterOnly().
+var PAGE_W_PX = 816;          // 8.5in @ 96dpi
+var PAGE_H_PX = 1056;         // 11in @ 96dpi
+var PAGE_MARGIN_TOP_PX = 38;
+var PAGE_MARGIN_SIDE_PX = 48;
+var PAGE_MARGIN_BOTTOM_PX = 38;
+var PAGE_SAFETY_BUFFER_PX = 18; // guard against measurement/print rendering drift
+var MIN_SPACE_AFTER_HEADING_PX = 55; // avoid orphaned clause headings at page bottom
+
+var LETTERHEAD_ASPECT_H_OVER_W = 300/1400; // intrinsic image aspect ratio (height/width)
+var LETTERHEAD_EXTRA_PX = 16 /*margin-bottom*/ + 2 /*border-bottom*/ + 8 /*padding-bottom*/;
+
+function paginateBlocks(blocks, letterheadHtml){
+  var contentWidth = PAGE_W_PX - (PAGE_MARGIN_SIDE_PX*2);
+
+  var measureWrap = document.createElement('div');
+  measureWrap.className = 'letter-doc';
+  measureWrap.style.position = 'absolute';
+  measureWrap.style.left = '-99999px';
+  measureWrap.style.top = '0';
+  measureWrap.style.width = contentWidth+'px';
+  measureWrap.style.fontSize = '12px';
+  measureWrap.style.lineHeight = '1.6';
+  measureWrap.style.fontFamily = 'Arial,sans-serif';
+  document.body.appendChild(measureWrap);
+
+  var letterheadHeight = (contentWidth * LETTERHEAD_ASPECT_H_OVER_W) + LETTERHEAD_EXTRA_PX;
+  var available = (PAGE_H_PX - PAGE_MARGIN_TOP_PX - PAGE_MARGIN_BOTTOM_PX) - letterheadHeight - PAGE_SAFETY_BUFFER_PX;
+
+  var pages = [];
+  var pageHtmlList = [];
+
+  function removeLastN(n){
+    for(var i=0;i<n;i++){
+      if(measureWrap.lastChild) measureWrap.removeChild(measureWrap.lastChild);
+    }
+  }
+  function appendBlock(html){
+    var before = measureWrap.children.length;
+    measureWrap.insertAdjacentHTML('beforeend', html);
+    return measureWrap.children.length - before;
+  }
+  function finalizePage(){
+    if(pageHtmlList.length>0) pages.push(pageHtmlList.join(''));
+    pageHtmlList = [];
+    measureWrap.innerHTML = '';
+  }
+
+  blocks.forEach(function(block){
+    var added = appendBlock(block.html);
+    var h = measureWrap.offsetHeight;
+
+    if(h > available){
+      removeLastN(added);
+      if(pageHtmlList.length===0){
+        // Block alone exceeds a full page (rare table/list). Accept overflow on its own page.
+        appendBlock(block.html);
+        pageHtmlList.push(block.html);
+        finalizePage();
+        return;
+      }
+      finalizePage();
+      appendBlock(block.html);
+      pageHtmlList.push(block.html);
+      return;
+    }
+
+    if(block.heading && (available - h) < MIN_SPACE_AFTER_HEADING_PX && pageHtmlList.length>0){
+      removeLastN(added);
+      finalizePage();
+      appendBlock(block.html);
+      pageHtmlList.push(block.html);
+      return;
+    }
+
+    pageHtmlList.push(block.html);
+  });
+  finalizePage();
+
+  document.body.removeChild(measureWrap);
+  return pages.map(function(pageHtml){
+    return '<div class="letter-page force-break">'+letterheadHtml+pageHtml+'</div>';
+  }).join('');
+}
+
+
 
 // ── PAGE 1 (Offer summary) ──
 function buildPage1HTML(d){
@@ -1675,19 +1755,16 @@ function renderAppointmentLetter(){
   if(!isAdmin) return;
   var d = gatherLetterData();
   var lh = buildLetterheadHTML();
-  var tcChunks = buildTermsAndConditionsHTML(d).split('<!--PB-->');
-  var tcPagesHTML = tcChunks.map(function(chunk){
-    return '<div class="letter-page force-break">'+lh+chunk+'</div>';
-  }).join('');
-  var appendixChunks = buildAppendixHTML(d.type, document.getElementById('mgmtAppendix1').value).split('<!--PB-->');
-  var appendixPagesHTML = appendixChunks.map(function(chunk){
-    return '<div class="letter-page force-break">'+lh+chunk+'</div>';
-  }).join('');
+  var mainBlocks = []
+    .concat(buildTermsAndConditionsBlocks(d))
+    .concat(buildAcceptanceBlocks(d));
+  var appendixBlocks = buildAppendixBlocks(d.type, document.getElementById('mgmtAppendix1').value);
+  var mainPagesHTML = paginateBlocks(mainBlocks, lh);
+  var appendixPagesHTML = paginateBlocks(appendixBlocks, lh);
   var html = ''
     +'<div class="letter-doc">'
     +'<div class="letter-page">'+lh+buildPage1HTML(d)+'</div>'
-    +tcPagesHTML
-    +'<div class="letter-page force-break">'+lh+buildAcceptanceHTML(d)+'</div>'
+    +mainPagesHTML
     +appendixPagesHTML
     +'</div>';
   document.getElementById('appointmentLetterSection').innerHTML = html;
@@ -1699,8 +1776,16 @@ function printLetterOnly(){
   clearErrors();
   renderAppointmentLetter();
   document.body.classList.add('print-letter-only');
+  var pageStyle = document.createElement('style');
+  pageStyle.id = 'letterPagePrintStyle';
+  pageStyle.textContent = '@page { size: 8.5in 11in; margin: '+PAGE_MARGIN_TOP_PX+'px '+PAGE_MARGIN_SIDE_PX+'px '+PAGE_MARGIN_BOTTOM_PX+'px '+PAGE_MARGIN_SIDE_PX+'px; }';
+  document.head.appendChild(pageStyle);
   window.print();
-  setTimeout(function(){ document.body.classList.remove('print-letter-only'); }, 800);
+  setTimeout(function(){
+    document.body.classList.remove('print-letter-only');
+    var st = document.getElementById('letterPagePrintStyle');
+    if(st) st.remove();
+  }, 800);
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────
