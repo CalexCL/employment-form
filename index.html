@@ -23,6 +23,7 @@ body{font-family:Arial,sans-serif;font-size:13px;color:#222;background:#f5f5f5}
 .form-group{display:flex;flex-direction:column;gap:2px;flex:1;min-width:140px}
 .form-group label{font-size:11px;color:#555;font-weight:600}
 .form-group input,.form-group select,.form-group textarea{border:none;border-bottom:1px solid #555;padding:3px 0;font-size:13px;background:transparent;outline:none;width:100%}
+.form-group select{appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3e%3cpath fill='%23555' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 2px center;background-size:10px 7px;padding-right:16px}
 .form-group textarea{border:1px solid #aaa;padding:6px;resize:vertical;border-radius:3px;min-height:60px}
 .radio-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:8px}
 .radio-row>label{font-size:13px;font-weight:600;min-width:110px}
@@ -82,6 +83,7 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
 .letter-doc li{margin-bottom:6px;text-align:justify}
 .letter-doc table{width:100%;border-collapse:collapse;margin-bottom:10px;font-size:11px}
 .letter-doc th,.letter-doc td{border:1px solid #999;padding:4px 8px}
+.letter-doc table,.letter-doc ul,.letter-doc ol{break-inside:avoid;page-break-inside:avoid}
 .letter-page{margin-bottom:18px}
 .letter-page.force-break{page-break-before:always;break-before:page}
 .letter-sig-line{margin:30px 0 4px;border-bottom:1px solid #222;width:260px}
@@ -93,6 +95,8 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
   .action-bar,.photo-btns,.add-row-btn,.sig-btns,.modal-bg,.office-overlay,.admin-badge,#letterLockNote{display:none!important}
   body{background:#fff}
   .form-wrap{box-shadow:none;padding:0}
+  .declaration-box{max-height:none!important;overflow:visible!important}
+  select{appearance:none!important;-webkit-appearance:none!important;background-image:none!important;padding-right:0!important}
   body.print-letter-only .form-wrap>*{display:none!important}
   body.print-letter-only #appointmentLetterSection{display:block!important;max-height:none!important;overflow:visible!important;border:none!important;padding:0!important}
 }
@@ -552,7 +556,7 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
-var FORM_VERSION = 'MEG-EAF v.2026.07.07-00:00';
+var FORM_VERSION = 'MEG-EAF v.2026.07.08-13:00';
 var DRIVE_CLIENT_ID = '173250268242-rvqdrltatjum14siek1s2qbfads45l48.apps.googleusercontent.com';
 var DRIVE_FOLDER_ID = '1h4nYScP_FpUsilyB8USpAAxxWs34bhM4';
 var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
@@ -1004,123 +1008,154 @@ function restoreFormData(d) {
     'docOther', 'officeComments', 'approvedJobTitle', 'reportingName', 'reportingTitle',
     'finalSalaryWords', 'mgmtAppendix1', 'manualLetterType',
     'hrNotes', 'notedBy', 'notesDate'];
-  simpleIds.forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el && d[id] !== undefined) el.value = d[id];
-  });
 
-  ['gender', 'marital', 'race', 'religion', 'q1', 'q2', 'q3', 'q4'].forEach(function (n) {
-    if (d['radio_' + n]) {
-      var el = document.querySelector('input[name="' + n + '"][value="' + d['radio_' + n] + '"]');
-      if (el) el.checked = true;
-    }
-  });
-  ['post', 'workhour', 'spoken', 'written', 'source', 'doc'].forEach(function (n) {
-    if (d['cb_' + n]) {
-      d['cb_' + n].forEach(function (v) {
-        var el = document.querySelector('input[name="' + n + '"][value="' + v + '"]');
-        if (el) el.checked = true;
-      });
-    }
-  });
-
-  if (d.declAgree) document.getElementById('declAgree').checked = true;
-  if (d.usingPassport) {
-    document.getElementById('usingPassport').checked = true;
-    toggleIdMode();
-  }
-  if (d.overrideLetterType) document.getElementById('overrideLetterType').checked = true;
-
-  function restorePhoto(data, boxId) {
-    if (!data) return;
-    var box = document.getElementById(boxId);
-    box.querySelector('.ph-label').style.display = 'none';
-    var img = document.createElement('img');
-    img.src = data;
-    img.className = 'preview';
-    box.appendChild(img);
-  }
-  if (d.photoData) { photoData = d.photoData; restorePhoto(photoData, 'photoBox'); }
-  if (d.idFrontData) { idFrontData = d.idFrontData; restorePhoto(idFrontData, 'idFrontBox'); }
-  if (d.idBackData) { idBackData = d.idBackData; restorePhoto(idBackData, 'idBackBox'); }
-
-  if (d.familyRows && d.familyRows.length) {
-    var fb = document.getElementById('familyBody');
-    fb.innerHTML = '';
-    d.familyRows.forEach(function (rowVals) {
-      var n = fb.rows.length + 1;
-      var tr = fb.insertRow();
-      tr.innerHTML = '<td><input type="text" value="' + n + '" style="width:30px"></td>'
-        + '<td><input type="text" placeholder="N/A if none"></td>'
-        + '<td><input type="number" min="0" style="width:45px"></td>'
-        + '<td><input type="text"></td>'
-        + '<td><input type="text"></td>';
-      var inputs = Array.from(tr.querySelectorAll('input'));
-      inputs.forEach(function (inp, idx) {
-        if (rowVals[idx] !== undefined) inp.value = rowVals[idx];
-      });
+  try {
+    simpleIds.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && d[id] !== undefined) el.value = d[id];
     });
-  }
+  } catch (e) { console.error('Restore: simple fields failed', e); }
 
-  if (d.academicRows && d.academicRows.length) {
-    var ab = document.getElementById('academicBody');
-    ab.innerHTML = '';
-    d.academicRows.forEach(function (rowData) {
-      var n = ab.rows.length + 1;
-      var tr = ab.insertRow();
-      tr.innerHTML = '<td><input type="text" value="' + n + '" style="width:30px"></td>'
-        + '<td><input type="text" placeholder="N/A if none"></td>'
-        + '<td><input type="text"></td>'
-        + '<td><input type="text"></td>'
-        + '<td><input type="date"></td>'
-        + '<td><input type="date"></td>'
-        + '<td style="text-align:center">'
-        + '<label style="margin-right:4px"><input type="radio" name="grad' + n + '" value="Y"> Y</label>'
-        + '<label><input type="radio" name="grad' + n + '" value="N"> N</label>'
-        + '</td>';
-      var textInputs = Array.from(tr.querySelectorAll('input[type!="radio"]'));
-      if (Array.isArray(rowData)) {
-        textInputs.forEach(function (inp, idx) {
-          if (rowData[idx] !== undefined) inp.value = rowData[idx];
+  try {
+    ['gender', 'marital', 'race', 'religion', 'q1', 'q2', 'q3', 'q4'].forEach(function (n) {
+      if (d['radio_' + n]) {
+        var el = document.querySelector('input[name="' + n + '"][value="' + d['radio_' + n] + '"]');
+        if (el) el.checked = true;
+      }
+    });
+  } catch (e) { console.error('Restore: radios failed', e); }
+
+  try {
+    ['post', 'workhour', 'spoken', 'written', 'source', 'doc'].forEach(function (n) {
+      if (d['cb_' + n]) {
+        d['cb_' + n].forEach(function (v) {
+          var el = document.querySelector('input[name="' + n + '"][value="' + v + '"]');
+          if (el) el.checked = true;
         });
-      } else if (rowData && typeof rowData === 'object') {
-        var fields = rowData.fields || [];
-        textInputs.forEach(function (inp, idx) {
-          if (fields[idx] !== undefined) inp.value = fields[idx];
+      }
+    });
+  } catch (e) { console.error('Restore: checkboxes failed', e); }
+
+  try {
+    if (d.declAgree) document.getElementById('declAgree').checked = true;
+    if (d.usingPassport) {
+      document.getElementById('usingPassport').checked = true;
+      toggleIdMode();
+    }
+    if (d.overrideLetterType) document.getElementById('overrideLetterType').checked = true;
+  } catch (e) { console.error('Restore: checkbox flags failed', e); }
+
+  try {
+    function restorePhoto(data, boxId) {
+      if (!data) return;
+      var box = document.getElementById(boxId);
+      box.querySelector('.ph-label').style.display = 'none';
+      var img = document.createElement('img');
+      img.src = data;
+      img.className = 'preview';
+      box.appendChild(img);
+    }
+    if (d.photoData) { photoData = d.photoData; restorePhoto(photoData, 'photoBox'); }
+    if (d.idFrontData) { idFrontData = d.idFrontData; restorePhoto(idFrontData, 'idFrontBox'); }
+    if (d.idBackData) { idBackData = d.idBackData; restorePhoto(idBackData, 'idBackBox'); }
+  } catch (e) { console.error('Restore: photos failed', e); }
+
+  try {
+    if (d.familyRows && d.familyRows.length) {
+      var fb = document.getElementById('familyBody');
+      fb.innerHTML = '';
+      d.familyRows.forEach(function (rowVals) {
+        var n = fb.rows.length + 1;
+        var tr = fb.insertRow();
+        tr.innerHTML = '<td><input type="text" value="' + n + '" style="width:30px"></td>'
+          + '<td><input type="text" placeholder="N/A if none"></td>'
+          + '<td><input type="number" min="0" style="width:45px"></td>'
+          + '<td><input type="text"></td>'
+          + '<td><input type="text"></td>';
+        var inputs = Array.from(tr.querySelectorAll('input'));
+        inputs.forEach(function (inp, idx) {
+          if (rowVals[idx] !== undefined) inp.value = rowVals[idx];
         });
-        if (rowData.graduated) {
-          tr.querySelectorAll('input[type="radio"]').forEach(function (r) {
-            r.checked = (r.value === rowData.graduated);
+      });
+    }
+  } catch (e) { console.error('Restore: family rows failed', e); }
+
+  try {
+    if (d.academicRows && d.academicRows.length) {
+      var ab = document.getElementById('academicBody');
+      ab.innerHTML = '';
+      d.academicRows.forEach(function (rowData) {
+        var n = ab.rows.length + 1;
+        var tr = ab.insertRow();
+        tr.innerHTML = '<td><input type="text" value="' + n + '" style="width:30px"></td>'
+          + '<td><input type="text" placeholder="N/A if none"></td>'
+          + '<td><input type="text"></td>'
+          + '<td><input type="text"></td>'
+          + '<td><input type="date"></td>'
+          + '<td><input type="date"></td>'
+          + '<td style="text-align:center">'
+          + '<label style="margin-right:4px"><input type="radio" name="grad' + n + '" value="Y"> Y</label>'
+          + '<label><input type="radio" name="grad' + n + '" value="N"> N</label>'
+          + '</td>';
+        var textInputs = Array.from(tr.querySelectorAll('input[type!="radio"]'));
+        if (Array.isArray(rowData)) {
+          textInputs.forEach(function (inp, idx) {
+            if (rowData[idx] !== undefined) inp.value = rowData[idx];
+          });
+        } else if (rowData && typeof rowData === 'object') {
+          var fields = rowData.fields || [];
+          textInputs.forEach(function (inp, idx) {
+            if (fields[idx] !== undefined) inp.value = fields[idx];
+          });
+          if (rowData.graduated) {
+            tr.querySelectorAll('input[type="radio"]').forEach(function (r) {
+              r.checked = (r.value === rowData.graduated);
+            });
+          }
+        }
+      });
+    }
+  } catch (e) { console.error('Restore: academic rows failed', e); }
+
+  try {
+    if (d.workExpCount) {
+      document.getElementById('workExpContainer').innerHTML = '';
+      workExpCount = 0;
+      for (var i = 0; i < d.workExpCount; i++) addWorkExp();
+      document.querySelectorAll('#workExpContainer > div').forEach(function (block, bi) {
+        if (d.workExpData && d.workExpData[bi]) {
+          Array.from(block.querySelectorAll('input, textarea')).forEach(function (el, ei) {
+            el.value = d.workExpData[bi][ei] || '';
           });
         }
-      }
-    });
-  }
+      });
+    }
+  } catch (e) { console.error('Restore: work experience failed', e); }
 
-  if (d.workExpCount) {
-    document.getElementById('workExpContainer').innerHTML = '';
-    workExpCount = 0;
-    for (var i = 0; i < d.workExpCount; i++) addWorkExp();
-    document.querySelectorAll('#workExpContainer > div').forEach(function (block, bi) {
-      if (d.workExpData && d.workExpData[bi]) {
-        Array.from(block.querySelectorAll('input, textarea')).forEach(function (el, ei) {
-          el.value = d.workExpData[bi][ei] || '';
-        });
-      }
-    });
-  }
+  try {
+    if (d.sigData && sigCtx) {
+      var img2 = new Image();
+      img2.onload = function () { sigCtx.drawImage(img2, 0, 0); };
+      img2.src = d.sigData;
+    }
+  } catch (e) { console.error('Restore: signature failed', e); }
 
-  if (d.sigData && sigCtx) {
-    var img2 = new Image();
-    img2.onload = function () { sigCtx.drawImage(img2, 0, 0); };
-    img2.src = d.sigData;
-  }
+  try {
+    document.getElementById('dobSource').textContent = d.dob ? '(loaded from draft)' : '';
+    updateDobMandatory();
+  } catch (e) { console.error('Restore: DOB hint failed', e); }
 
-  document.getElementById('dobSource').textContent = d.dob ? '(loaded from draft)' : '';
-  updateDobMandatory();
-  if (d.finalSalaryWords) salaryWordsManual = true;
-  updateLetterType();
-  renderAppointmentLetter();
+  try {
+    if (d.finalSalaryWords) salaryWordsManual = true;
+    // Force visibility-sync for conditional sections so restored data is
+    // actually visible on screen, not just present in the underlying fields
+    toggleIdMode();
+    updateLetterType();
+    if (document.getElementById('overrideLetterType').checked) {
+      document.getElementById('overrideTypeWrap').style.display = 'flex';
+    }
+    renderAppointmentLetter();
+  } catch (e) { console.error('Restore: letter preview / visibility sync failed', e); }
 }
 
 function scheduleAutoSave() {
@@ -1153,11 +1188,19 @@ function loadDraft(event) {
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function (e) {
+    var parsed;
     try {
-      restoreFormData(JSON.parse(e.target.result));
+      parsed = JSON.parse(e.target.result);
+    } catch (err) {
+      alert('Could not read this file as JSON.\n\nError: ' + err.message);
+      return;
+    }
+    try {
+      restoreFormData(parsed);
       document.getElementById('autosaveStatus').textContent = 'Draft loaded: ' + file.name;
     } catch (err) {
-      alert('Could not load draft. Please ensure it is a valid MEG draft JSON file.');
+      alert('Some parts of the draft could not be restored.\n\nError details: ' + err.message + '\n\nAny fields that did load successfully are kept — please review the form.');
+      console.error('Restore error:', err);
     }
   };
   reader.readAsText(file);
@@ -1492,6 +1535,241 @@ function onFinalSalaryInput() {
 }
 function onSalaryWordsInput() { salaryWordsManual = true; }
 
+function B(html) { return { html: html }; }
+function BH(html) { return { html: html, heading: true }; }
+function BA(html) { return { html: html, atomic: true }; }
+
+function buildTermsAndConditionsBlocks(d) {
+  return [
+  BH('<h3>Terms and Conditions Governing Your Offer of Employment at Myeden Group Sdn Bhd</h3>'),
+  BH('<p class="l-clause-title">1. Commencement of Employment</p>'),
+  B('<p>1.1 Your commencement date shall be ' + d.startDateFmt + ' and will, subject to the remaining terms of this offer of employment and after successful completion of your probation, continue until terminated by either party under the following terms and conditions.</p>'),
+  BH('<p class="l-clause-title">2. Reporting</p>'),
+  B('<p>2.1 You will report directly to ' + d.reportingName + ', ' + d.reportingTitle + ' of the Company.</p>'),
+  BH('<p class="l-clause-title">3. Probation</p>'),
+  B('<p>3.1 You will have to undergo a probationary period of up to six (6) calendar months from the date of commencement of employment as stated above. Your performance, including but not limited to your skill, competency, temperament, aptitude, attitude and suitability in relation to the position will be evaluated during the period of probation. This evaluation will determine if you will be confirmed in your employment in the Company.</p>'),
+  B('<p>3.2 Your probation may, if necessary, be shortened or extended for such period as the Company deems fit.</p>'),
+  B('<p>3.3 In the event that you fail to meet the Company\u2019s expectations of the position, you may be transferred to another department/job position for further probation, or you will not be confirmed and will not be retained in your employment at the end of the probation at full discretion of the Company.</p>'),
+  B('<p>3.4 All other terms, conditions, duties and benefits during your probation are as stipulated in the Employee Handbook.</p>'),
+  BH('<p class="l-clause-title">4. Confirmation</p>'),
+  B('<p>4.1 The Company shall, at the end of your probationary period or any extension thereof and subject to your satisfactory performance, notify you in writing of your confirmation of employment, termination of employment or extension of probation.</p>'),
+  BH('<p class="l-clause-title">5. Monthly Salary</p>'),
+  B('<p>5.1 Your monthly salary shall comprise of a monthly fixed salary and a Monthly Variable Component (MVC).</p>'),
+  B('<p style="margin-left:18px"><strong>5.1.1 Introduction of Monthly Variable Component (MVC)</strong><br>The Monthly Variable Component (MVC) is a variable and performance-linked component introduced by the Company as part of the employee\u2019s monthly remuneration structure. The MVC is designed to promote accountability, performance excellence, operational discipline, productivity, teamwork, and alignment with the Company\u2019s mission, values, and Key Performance Indicators (KPI).</p>'),
+  B('<p style="margin-left:18px">The MVC amount shall be assessed and determined based on factors including but not limited to: KPI achievement and overall work performance; attendance, punctuality, and work discipline; compliance with Company policies, SOPs, and operational standards; teamwork, professionalism, attitude, and conduct; departmental contribution and operational effectiveness; and Company business performance, sustainability, and operational requirements.</p>'),
+  B('<p style="margin-left:18px">Employees whose KPI results, performance standards, conduct, or work attitude are assessed by the Management as below expectation, under improvement status, unsatisfactory, or non-compliant with Company requirements may have their MVC reduced, adjusted, partially withheld, suspended, or not payable for the relevant assessment period at the sole discretion of the Company.</p>'),
+  B('<p style="margin-left:18px">The MVC shall not be construed as a fixed, guaranteed, automatic, or permanent salary entitlement and may be reviewed, revised, restructured, increased, reduced, suspended, or withdrawn by the Company from time to time based on operational, financial, performance, disciplinary, or business considerations.</p>'),
+  B('<p>5.2 Your monthly fixed salary shall be ' + d.salaryFmt + ' (' + d.salaryWords + ') which shall be pro-rated on a day-to-day basis in accordance with your number of working days for each particular month.</p>'),
+  B('<p>5.3 Your monthly conditional salary shall be dependent on you achieving the target as set out and defined in Clause 6 below (if applicable).</p>'),
+  B('<p>5.4 For the avoidance of doubt, your monthly salary shall only comprise of the monthly fixed salary prior to your confirmation of employment.</p>'),
+  B('<p>5.5 Your monthly fixed salary together with your monthly conditional salary (which you may only be entitled to after your confirmation of employment) shall be paid to you by the Company on/before the 7th day of each calendar month (if applicable).</p>'),
+  B('<p>5.6 Your monthly fixed salary may be reviewed every year by the Company. The Company shall have the absolute right to determine any increase in your monthly fixed salary during such review depending on your job performance and fulfilment of key performance indicators (\u201CKPI\u201D).</p>'),
+  B('<p>5.7 In the event you are promoted from your current position by the Company, your monthly fixed salary shall be adjusted accordingly, and the Company shall have the sole discretion to require you to execute a fresh employment letter in respect of your new position in which event this offer of employment shall be superseded and deemed null and void.</p>'),
+  BH('<p class="l-clause-title">6. Target (If Applicable)</p>'),
+  B('<p>6.1 This clause shall only be applicable upon your receipt of a written confirmation of your employment from the Company.</p>'),
+  B('<p>6.2 Upon your confirmation, you may be entitled to payment of a monthly conditional salary which shall be computed and regulated by the Company\u2019s policy as determined by the Company from time to time.</p>'),
+  B('<p>6.3 The Company will set, review and adjust the group target level and personal target level to be achieved by you every month. The determination of the group target level and personal target level shall be made by the Company after review and consideration of the period and condition of the market, which may be varied from time to time.</p>'),
+  B('<p>6.4 The Company shall reserve its rights to issue any warning in writing should you fail to achieve the target.</p>'),
+  BH('<p class="l-clause-title">7. Salary Increment and Performance Bonus</p>'),
+  B('<p>7.1 This clause shall only be applicable upon your receipt of a written confirmation of your employment from the Company.</p>'),
+  B('<p>7.2 You may be entitled to salary increment and performance bonus (up to 20% of your monthly fixed salary) during your employment with the Company based on your personal fulfilment and performance, appraisal given by your superior and/or the Company\u2019s management at the end of every quarter of the year and the Company\u2019s performance of the year at the sole discretion of the Company. The Company will adjust your monthly fixed salary (at the Company\u2019s sole discretion) and distribute the performance bonus (if any) once a year.</p>'),
+  B('<p>7.3 All other terms, conditions and information in respect of performance and attendance bonus shall be as stipulated in the Employee Handbook.</p>'),
+  BH('<p class="l-clause-title">8. Hours of Work and Overtime Pay</p>'),
+  B('<p>8.1 Our official hours of business vary depending on the location of your employment and may be varied or modified by the Company depending on business needs with or without prior notice to you.</p>'),
+  B('<p>8.2 Our current and general official hours of business are as follows: <strong>Monday \u2013 Friday, 8.30am \u2013 6.30pm. Lunch Hour: 12noon \u2013 1pm</strong> on rotation basis in accordance with the direction of your reporting superior.</p>'),
+  B('<p>8.3 However, you are expected to work the necessary hours to carry out your responsibilities and to timely complete the tasks assigned to you. You may be required to work on Saturdays, Sundays, Official Holidays and/or after the abovementioned general official hours of business when need arises as directed by your reporting superior.</p>'),
+  B('<p>8.4 For the avoidance of doubt, additional overtime payments may not be made, unless otherwise required by the prevailing laws.</p>'),
+  BH('<p class="l-clause-title">9. Public Holiday</p>'),
+  B('<p>9.1 The Company abides by and follows the gazetted public holidays declared by relevant authorities as determined by the Company before the commencement of each calendar year.</p>'),
+  B('<p>9.2 In the event you are required to work on a public holiday, one of the following arrangements shall apply subject to further terms and conditions more specifically defined in the Employee Handbook: (a) the Company will allow you to replace the public holiday with another working day; or (b) you will be entitled to extra pay for your work on a public holiday.</p>'),
+  BH('<p class="l-clause-title">10. Place of Work and Reservation of Right to Transfer</p>'),
+  B('<p>10.1 Your normal place of work shall be at one of the locations of the Company as determined by the Company from time to time.</p>'),
+  B('<p>10.2 Notwithstanding the above, you may be required to undertake work and/or attend meetings at other premises and/or locations within Malaysia including any work and/or meeting outside of Johor Bahru.</p>'),
+  B('<p>10.3 The Company reserves its rights to station you at any other location, premises or places to be determined by the Company. The Company shall notify you either verbally or in writing of any relocation of your place of work whether permanent or temporary in nature.</p>'),
+  B('<p>10.4 In addition to the above, the Company further reserves at its absolute discretion the right to instruct you to perform certain works for or to transfer or second you to any department, branch, division, unit, affiliate, company or associate or related company within the group of the Company.</p>'),
+  B('<p>10.5 The Company may also transfer you from time to time for purpose of exposing you to different aspects of its operations.</p>'),
+  BH('<p class="l-clause-title">11. Duties and Responsibilities</p>'),
+  B('<p>11.1 During your employment, you shall carry out your scope of duties as set forth in <strong>' + d.appendixRef + '</strong> in a professional and diligent manner with a high degree of honesty and integrity, comply with the Company\u2019s policies, use your best endeavors to achieve your key performance indicators, and devote your working time and attention to the Company\u2019s business.</p>'),
+  B('<p>11.2 The list of duties and obligations is non-exhaustive, and the Company reserves its rights to vary, amend and/or make addition to the above. Any variations, amendments and additions made shall be notified to you in writing by the Company.</p>'),
+  BH('<p class="l-clause-title">12. Working Attire</p>'),
+  B('<p>12.1 You are required to attend work in formal attire or the Company\u2019s uniform (if provided) at all material times, and to dress with decorum at all times.</p>'),
+  B('<p>12.2 In the event of resignation and/or termination, you shall return any Company uniform or assets within seven (7) days of your last day, failing which a penalty of RM100.00 per uniform (or the relevant asset value) may be imposed and deducted from your final salary.</p>'),
+  BH('<p class="l-clause-title">13. Perkeso &amp; Employment Insurance System ("EIS")</p>'),
+  B('<p>13.1 The Company will make the necessary contribution to Perkeso and EIS at the prevailing prescribed rate as determined by the relevant authorities during your employment with the Company.</p>'),
+  BH('<p class="l-clause-title">14. Employees Provident Fund ("EPF")</p>'),
+  B('<p>14.1 Subject to the prevailing law and guideline governing the EPF, the Company will pay a certain percentage of your emoluments to the EPF, and your contribution shall be at the statutory percentage subject to prevailing law.</p>'),
+  BH('<p class="l-clause-title">15. Annual Leave</p>'),
+  B('<p>15.1 You are not allowed to take annual leave during your probation. Absence from duty during your probation without a valid medical certificate will be considered as you having taken unpaid leave.</p>'),
+  B('<p>15.2 You are entitled to paid annual leave as follows: less than 2 years of service \u2013 8 days per year; 2 to less than 5 years \u2013 12 days per year; 5 years or more \u2013 16 days per year, computed on a pro rata basis for each complete month of service.</p>'),
+  B('<p>15.3 On termination of employment, the Company may require you to take any accrued annual leave during the notice period or make payment in lieu, unless termination is due to your fault.</p>'),
+  BH('<p class="l-clause-title">16. Other Leaves</p>'),
+  B('<p>16.1 Your entitlement to all other leaves shall be as stipulated in the Employee Handbook.</p>'),
+  BH('<p class="l-clause-title">17. Confidential Information</p>'),
+  B('<p>17.1 All information relating to the Company and its clients which you learn in the course of your employment is secret and confidential and must not be discussed or disclosed to any unauthorized person.</p>'),
+  B('<p>17.2 In the event of any breach, the Company shall be entitled to impose and demand from you the sum of RM50,000.00 as agreed liquidated damages for loss, damage or costs incurred by the Company as a result of your breach.</p>'),
+  BH('<p class="l-clause-title">18. Other Employment</p>'),
+  B('<p>18.1 You shall not undertake or consent to be a director, partner, contractor or employee of any other business or organization without the prior written consent of the Company.</p>'),
+  BH('<p class="l-clause-title">19. Working Attitude and Behavior</p>'),
+  B('<p>19.1 You shall at all times conduct yourself in a polite and respectable manner. The Company reserves its rights to take disciplinary action, including termination without notice, in the event of unacceptable conduct.</p>'),
+  BH('<p class="l-clause-title">20. Warning Letter</p>'),
+  B('<p>20.1 The terms and conditions in respect of issuance of warning letter(s) by the Company are as stipulated in the Employee Handbook.</p>'),
+  BH('<p class="l-clause-title">21. Notice and Termination</p>'),
+  B('<p>21.1 During your probationary period, either party may terminate this employment by giving one (1) calendar month prior written notice, or the equivalent salary in lieu of notice.</p>'),
+  B('<p>21.2 Upon confirmation, notice periods shall follow: less than 2 years \u2013 4 weeks; 2 to less than 5 years \u2013 6 weeks; 5 years or more \u2013 12 weeks, unless a shorter period is agreed in writing.</p>'),
+  B('<p>21.3 The Company may terminate your employment immediately without notice in the event of misconduct, dereliction of duty, breach of trust, dishonesty, conviction of a criminal offence, or continuous unauthorized absence.</p>'),
+  BH('<p class="l-clause-title">22. Retirement</p>'),
+  B('<p>22.1 Retirement will be attaining the age of 60 years old.</p>'),
+  BH('<p class="l-clause-title">23. Force Majeure</p>'),
+  B('<p>23.1 The Company shall not be liable for non-performance or delay resulting from any event beyond its reasonable control, including act of God, natural disaster, war, riot, government action, epidemic or pandemic.</p>'),
+  BH('<p class="l-clause-title">24. Company\u2019s Property</p>'),
+  B('<p>24.1 You will be required to return all Company property upon termination of employment, failing which the Company may charge you a sum equivalent to one (1) month salary or the asset cost, whichever is higher.</p>'),
+  BH('<p class="l-clause-title">25. Employee Handbook</p>'),
+  B('<p>25.1 By signing this offer, you agree to comply with and be bound by the contents of the Employee Handbook.</p>'),
+  BH('<p class="l-clause-title">26. Severability</p>'),
+  B('<p>26.1 Each clause hereof shall be deemed independent, and the invalidity of any clause shall not affect the enforceability of the remaining clauses.</p>'),
+  BH('<p class="l-clause-title">27. Other Terms, Conditions, Rules and Regulations</p>'),
+  B('<p>27.1 This offer, together with the Employee Handbook and other Company policies, constitutes the full terms and conditions of your employment.</p>'),
+  BH('<p class="l-clause-title">28. Company\u2019s Right</p>'),
+  B('<p>28.1 The Company reserves the right to add, vary, amend or revise these terms and conditions from time to time, effective upon written notification to you.</p>'),
+  BH('<p class="l-clause-title">29. Copyright</p>'),
+  B('<p>29.1 All contents of this Offer of Employment are protected by copyright and owned by the Company. No part may be copied, reproduced, or transmitted without permission.</p>'),
+  BH('<p class="l-clause-title">30. Acceptance</p>'),
+  B('<p>30.1 By accepting this offer, you consent to the Company collecting, storing, using and processing your personal data as defined under the Personal Data Protection Act 2010, for purposes related to your employment.</p>'),
+  B('<p>30.2 Please confirm your acceptance by signing and returning the enclosed duplicate copy within three (3) working days from the date of this offer, failing which this offer will lapse.</p>'),
+  B('<p style="margin-top:14px">We look forward to welcoming you to the Company.</p>'),
+  B('<p>Yours sincerely,</p>'),
+  B('<p>for and on behalf of <strong>MYEDEN GROUP SDN BHD</strong></p>'),
+  BA('<div class="letter-sig-line"></div><p>Irene Tan<br>CEO of MyEden Group Sdn Bhd</p>')
+  ];
+}
+
+function buildAcceptanceBlocks(d) {
+  return [
+  BH('<h3>Acceptance of Offer</h3>'),
+  B('<p>I, ' + d.name + ', NRIC: ' + d.ic + ', have read and understood the above terms and conditions, and hereby confirm my acceptance of all the terms and conditions herein and any amendments made hereafter.</p>'),
+  B('<p>I hereby confirm and acknowledge that I am physically, mentally and medically fit for employment in this position.</p>'),
+  BA('<p style="margin-top:20px">Name: ' + d.name + '</p><p>NRIC No.: ' + d.ic + '</p><p>Date: ____________________</p>')
+  ];
+}
+
+function buildAppendixBlocks(type, mgmtAppendixText) {
+  if (type === 'teacher') {
+    return [
+    BH('<h3>Appendix 1 \u2013 Basic Scope of Duties</h3>'),
+    B('<p><strong>1. Main Duties</strong><br>Your main duty is to take full care of the children designated to you, from checking in to checking out of Centre\u2019s premises including the well-being of the children, checking of school bags for homework, guidance of homework, meals and shower.</p>'),
+    B('<p><strong>2. Preparation of Materials</strong><br>You are required to prepare any materials needed to carry out lessons conducted in the Centre, at least one week beforehand.</p>'),
+    B('<p><strong>3. Preparation of the Environment</strong><br>You are required to set up the environment daily before the children arrive.</p>'),
+    B('<p><strong>4. Homework Guidance</strong><br>You are required to ensure children finish their homework before going home, and convey any unfinished homework to parents.</p>'),
+    B('<p><strong>5. Cleaning Up</strong><br>You are required to clean up both indoor and outdoor environments, keeping children\u2019s safety and hygiene in mind.</p>'),
+    B('<p><strong>6. Training, Coaching and Operation Brief Sessions</strong><br>You are required to attend any training, coaching, and monthly Operation Brief Sessions provided by the Company.</p>'),
+    B('<p><strong>7. Be Alert</strong><br>Always be highly alert to the environment and children\u2019s behaviours to ensure their safety at all times.</p>'),
+    BH('<h3>Appendix 2 \u2013 Codes of Professional Conduct and Centre\u2019s Policies</h3>'),
+    B('<p><strong>1. Be a Role Model</strong><br>Always be a role model in speech and actions.</p>'),
+    B('<p><strong>2. Mobile Phones</strong><br>Usage of mobile phone for personal matters is not allowed during work time.</p>'),
+    B('<p><strong>3. Attire and Appearance</strong><br>Always wear the designated uniform provided by the Centre.</p>'),
+    B('<p><strong>4. Grace and Courtesy</strong><br>Always bend down and be at the same level to make eye contact with children.</p>'),
+    B('<p><strong>5. Be a Positive Reinforcer</strong><br>Always use positive or neutral language to direct the child.</p>'),
+    B('<p><strong>6. Rewards and Punishment</strong><br>Physical punishment is prohibited.</p>'),
+    B('<p><strong>7. Discussion About Children</strong><br>Do not discuss any children\u2019s behaviour among staff in the presence of the children.</p>'),
+    B('<p><strong>8. Integrity, Diligence, and Initiatives</strong><br>Any theft or dishonesty shall not be tolerated.</p>'),
+    B('<p><strong>9. Love the Children</strong><br>Staff are strongly encouraged to build a trusting relationship with the children.</p>')
+    ];
+  }
+  var body = mgmtAppendixText && mgmtAppendixText.trim()
+    ? mgmtAppendixText.replace(/</g, '&lt;').replace(/\n/g, '<br>')
+    : '<span style="color:#c62828;font-style:italic">[Job-specific scope of duties to be added by HR for this role]</span>';
+  return [
+  BH('<h3>Appendix 1 \u2013 Basic Scope of Duties</h3>'),
+  B('<p>' + body + '</p>')
+  ];
+}
+
+var PAGE_W_PX = 816;
+var PAGE_H_PX = 1056;
+var PAGE_MARGIN_TOP_PX = 38;
+var PAGE_MARGIN_SIDE_PX = 48;
+var PAGE_MARGIN_BOTTOM_PX = 38;
+var PAGE_SAFETY_BUFFER_PX = 24;
+var MIN_SPACE_AFTER_HEADING_PX = 55;
+var LETTERHEAD_ASPECT_H_OVER_W = 300 / 1400;
+var LETTERHEAD_EXTRA_PX = 16 + 2 + 8;
+
+function paginateBlocks(blocks, letterheadHtml) {
+  var contentWidth = PAGE_W_PX - (PAGE_MARGIN_SIDE_PX * 2);
+  var measureWrap = document.createElement('div');
+  measureWrap.className = 'letter-doc';
+  measureWrap.style.position = 'absolute';
+  measureWrap.style.left = '-99999px';
+  measureWrap.style.top = '0';
+  measureWrap.style.width = contentWidth + 'px';
+  measureWrap.style.fontSize = '12px';
+  measureWrap.style.lineHeight = '1.6';
+  measureWrap.style.fontFamily = 'Arial,sans-serif';
+  document.body.appendChild(measureWrap);
+
+  var letterheadHeight = (contentWidth * LETTERHEAD_ASPECT_H_OVER_W) + LETTERHEAD_EXTRA_PX;
+  var available = (PAGE_H_PX - PAGE_MARGIN_TOP_PX - PAGE_MARGIN_BOTTOM_PX) - letterheadHeight - PAGE_SAFETY_BUFFER_PX;
+
+  var pages = [];
+  var pageHtmlList = [];
+
+  function removeLastN(n) { for (var i = 0; i < n; i++) { if (measureWrap.lastChild) measureWrap.removeChild(measureWrap.lastChild); } }
+  function appendBlock(html) { var before = measureWrap.children.length; measureWrap.insertAdjacentHTML('beforeend', html); return measureWrap.children.length - before; }
+  function finalizePage() { if (pageHtmlList.length > 0) pages.push(pageHtmlList.join('')); pageHtmlList = []; measureWrap.innerHTML = ''; }
+
+  blocks.forEach(function (block) {
+    var added = appendBlock(block.html);
+    var h = measureWrap.offsetHeight;
+    if (h > available) {
+      removeLastN(added);
+      if (pageHtmlList.length === 0) {
+        appendBlock(block.html);
+        pageHtmlList.push(block.html);
+        finalizePage();
+        return;
+      }
+      finalizePage();
+      appendBlock(block.html);
+      pageHtmlList.push(block.html);
+      return;
+    }
+    if (block.heading && (available - h) < MIN_SPACE_AFTER_HEADING_PX && pageHtmlList.length > 0) {
+      removeLastN(added);
+      finalizePage();
+      appendBlock(block.html);
+      pageHtmlList.push(block.html);
+      return;
+    }
+    pageHtmlList.push(block.html);
+  });
+  finalizePage();
+
+  document.body.removeChild(measureWrap);
+  return pages.map(function (pageHtml) {
+    return '<div class="letter-page force-break">' + letterheadHtml + pageHtml + '</div>';
+  }).join('');
+}
+
+function buildPage1HTML(d) {
+  return '<div class="letter-tight"><p>Name: ' + d.name + '</p><p>NRIC: ' + d.ic + '</p></div>'
+    + '<h3 style="margin-top:20px">Employment Offer Letter</h3><p>Date: ' + d.dateFmt + '</p>'
+    + '<p class="letter-private">Private and Confidential</p>'
+    + '<div class="letter-tight" style="margin-top:10px"><p>' + d.name + '</p>'
+    + d.addrLines.map(function (l) { return '<p>' + l + '</p>'; }).join('') + '</div>'
+    + '<h3 style="margin-top:16px">Offer of Employment at Myeden Group Sdn Bhd</h3>'
+    + '<p>MYEDEN GROUP SDN BHD ("the Company") is pleased to offer you the position of <em>' + d.jobTitle + '</em>, or in such other capacity as determined by the Company from time to time, subject to the terms and conditions herein.</p>'
+    + '<table><tr><td style="width:30px">a.</td><td>Job Title</td><td style="width:20px">:</td><td><strong>' + d.jobTitle + '</strong></td></tr>'
+    + '<tr><td>b.</td><td>Commencement Date</td><td>:</td><td><strong>' + d.startDateFmt + '</strong></td></tr>'
+    + '<tr><td>c.</td><td>Probationary Period</td><td>:</td><td><strong>3 to 6 months</strong></td></tr>'
+    + '<tr><td>d.</td><td>Monthly Fixed Salary on Commencement</td><td>:</td><td><strong>' + d.salaryFmt + '</strong></td></tr>'
+    + '<tr><td>e.</td><td>Working Hour</td><td>:</td><td><strong>' + d.timeFrom + ' to ' + d.timeTo + '</strong></td></tr></table>'
+    + '<p>All other terms and conditions governing your employment are stated from page 2 of this Letter of Offer onward. Should you require to provide evidence of your employment to any bank or authority, you may provide a copy of page 1 ONLY. The remaining pages are strictly private and confidential.</p>'
+    + '<p style="margin-top:14px">Yours sincerely,</p>'
+    + '<p>for and on behalf of <strong>Myeden Group Sdn. Bhd.</strong></p>'
+    + '<div class="letter-sig-line"></div>'
+    + '<p>Irene Tan<br>CEO of MyEden Group Sdn. Bhd.</p>';
+}
+
 function gatherLetterData() {
   var type = detectLetterType();
   var addrLines = [
@@ -1507,6 +1785,7 @@ function gatherLetterData() {
     + (document.getElementById('ic2').value ? '-' : '')
     + (document.getElementById('ic3').value || '');
   if (!icStr.replace(/-/g, '')) icStr = document.getElementById('passport').value || '';
+  var appendixRef = type === 'teacher' ? 'Appendix 1 &amp; Appendix 2' : 'Appendix 1';
   return {
     type: type,
     name: orBlank(document.getElementById('nameEnglish').value || document.getElementById('nameChinese').value),
@@ -1520,35 +1799,31 @@ function gatherLetterData() {
     timeFrom: fmtTimeAmPm(document.getElementById('finalFrom').value),
     timeTo: fmtTimeAmPm(document.getElementById('finalTo').value),
     reportingName: orBlank(document.getElementById('reportingName').value),
-    reportingTitle: orBlank(document.getElementById('reportingTitle').value)
+    reportingTitle: orBlank(document.getElementById('reportingTitle').value),
+    appendixRef: appendixRef
   };
 }
 
-function buildPage1HTML(d) {
-  return '<div class="letter-tight"><p>Name: ' + d.name + '</p><p>NRIC: ' + d.ic + '</p></div>'
-    + '<h3 style="margin-top:20px">Employment Offer Letter</h3><p>Date: ' + d.dateFmt + '</p>'
-    + '<p class="letter-private">Private and Confidential</p>'
-    + '<div class="letter-tight" style="margin-top:10px"><p>' + d.name + '</p>'
-    + d.addrLines.map(function (l) { return '<p>' + l + '</p>'; }).join('') + '</div>'
-    + '<h3 style="margin-top:16px">Offer of Employment at Myeden Group Sdn Bhd</h3>'
-    + '<p>MYEDEN GROUP SDN BHD is pleased to offer you the position of <em>' + d.jobTitle + '</em>, subject to the terms and conditions herein.</p>'
-    + '<table><tr><td style="width:30px">a.</td><td>Job Title</td><td style="width:20px">:</td><td><strong>' + d.jobTitle + '</strong></td></tr>'
-    + '<tr><td>b.</td><td>Commencement Date</td><td>:</td><td><strong>' + d.startDateFmt + '</strong></td></tr>'
-    + '<tr><td>c.</td><td>Probationary Period</td><td>:</td><td><strong>3 to 6 months</strong></td></tr>'
-    + '<tr><td>d.</td><td>Monthly Fixed Salary</td><td>:</td><td><strong>' + d.salaryFmt + '</strong></td></tr>'
-    + '<tr><td>e.</td><td>Working Hours</td><td>:</td><td><strong>' + d.timeFrom + ' to ' + d.timeTo + '</strong></td></tr></table>'
-    + '<p style="margin-top:14px">Yours sincerely,<br>for and on behalf of <strong>Myeden Group Sdn. Bhd.</strong></p>'
-    + '<div class="letter-sig-line"></div><p>Irene Tan<br>CEO of MyEden Group Sdn. Bhd.</p>';
+function buildLetterheadHTML() {
+  return '<div class="letter-head"><img src="data:image/jpeg;base64,' + LETTERHEAD_B64 + '" alt="MyEden Group Letterhead" style="width:100%;max-width:100%;display:block"></div>';
 }
 
 function renderAppointmentLetter() {
   if (!isAdmin) return;
   var d = gatherLetterData();
-  var lh = '<div class="letter-head" style="background:#f0f7f0;padding:8px;text-align:center;font-weight:700;color:#1a7340;font-size:13px">'
-    + 'MyEden Group Sdn. Bhd. — No 14A, Jalan Indah 15/1, Taman Bukit Indah, 81200 Johor Bahru | Tel: +6016-219 1170</div>';
-  document.getElementById('appointmentLetterSection').innerHTML =
-    '<div class="letter-doc"><div class="letter-page">' + lh + buildPage1HTML(d) + '</div>'
-    + '<p style="color:#888;font-size:11px;margin-top:16px;font-style:italic">Full Terms &amp; Conditions and Appendix pages are generated on print/deploy.</p></div>';
+  var lh = buildLetterheadHTML();
+  var mainBlocks = []
+    .concat(buildTermsAndConditionsBlocks(d))
+    .concat(buildAcceptanceBlocks(d));
+  var appendixBlocks = buildAppendixBlocks(d.type, document.getElementById('mgmtAppendix1').value);
+  var mainPagesHTML = paginateBlocks(mainBlocks, lh);
+  var appendixPagesHTML = paginateBlocks(appendixBlocks, lh);
+  var html = '<div class="letter-doc">'
+    + '<div class="letter-page">' + lh + buildPage1HTML(d) + '</div>'
+    + mainPagesHTML
+    + appendixPagesHTML
+    + '</div>';
+  document.getElementById('appointmentLetterSection').innerHTML = html;
 }
 
 function printLetterOnly() {
@@ -1559,7 +1834,7 @@ function printLetterOnly() {
   document.body.classList.add('print-letter-only');
   var st = document.createElement('style');
   st.id = 'lpst';
-  st.textContent = '@page{size:8.5in 11in;margin:38px 48px;}';
+  st.textContent = '@page{size:8.5in 11in;margin:' + PAGE_MARGIN_TOP_PX + 'px ' + PAGE_MARGIN_SIDE_PX + 'px ' + PAGE_MARGIN_BOTTOM_PX + 'px ' + PAGE_MARGIN_SIDE_PX + 'px;}';
   document.head.appendChild(st);
   window.print();
   setTimeout(function () {
