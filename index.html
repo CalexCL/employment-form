@@ -173,9 +173,10 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
   </div>
   <label style="margin-left:20px">Date of Birth <span style="color:red" id="dobStar"></span></label>
   <div style="display:flex;flex-direction:column">
-    <input type="date" id="dob" style="border:none;border-bottom:1px solid #555;padding:3px;font-size:13px">
+    <input type="date" id="dob" style="border:none;border-bottom:1px solid #555;padding:3px;font-size:13px" oninput="updateAgeDisplay()">
     <span class="dob-auto" id="dobSource"></span>
   </div>
+  <span id="ageDisplay" style="font-size:12px;font-weight:600;color:#333;margin-left:8px;align-self:flex-end;padding-bottom:4px"></span>
 </div>
 <div class="radio-row">
   <label>Marital Status <span style="color:red">*</span></label>
@@ -554,6 +555,22 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
   </div>
 </div>
 
+<div class="modal-bg" id="cameraModal">
+  <div class="modal-inner" style="width:520px">
+    <h3>&#128247; Capture I/C Photo</h3>
+    <div style="position:relative;background:#000;border-radius:4px;overflow:hidden">
+      <video id="cameraVideo" autoplay playsinline style="width:100%;display:block"></video>
+      <div id="cameraFrame" style="position:absolute;border:3px dashed #4caf50;border-radius:6px;pointer-events:none;box-shadow:0 0 0 2000px rgba(0,0,0,.35)"></div>
+    </div>
+    <canvas id="cameraCanvas" style="display:none"></canvas>
+    <p style="font-size:11px;color:#888;margin-top:8px">Align the I/C card within the green frame, hold steady, then click Capture.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeCameraModal()">Cancel</button>
+      <button class="btn-confirm" onclick="captureCameraPhoto()">Capture</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 var FORM_VERSION = 'MEG-EAF v.2026.07.08-13:00';
@@ -650,6 +667,7 @@ function extractDOB() {
   hint.textContent = '✓ DOB extracted from IC';
   src.textContent = '(auto-filled from IC — editable)';
   updateDobMandatory();
+  updateAgeDisplay();
 }
 function checkPassport() {
   updateDobMandatory();
@@ -665,6 +683,87 @@ function updateDobMandatory() {
   var ic1 = document.getElementById('ic1').value.trim();
   var passport = document.getElementById('passport').value.trim();
   document.getElementById('dobStar').textContent = (!ic1 && passport) ? '*' : '';
+}
+
+function calculateAge(dobStr) {
+  if (!dobStr) return '';
+  var dob = new Date(dobStr + 'T00:00:00');
+  if (isNaN(dob.getTime())) return '';
+  var today = new Date();
+  var age = today.getFullYear() - dob.getFullYear();
+  var m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+  return age >= 0 ? age : '';
+}
+function updateAgeDisplay() {
+  var dob = document.getElementById('dob').value;
+  var ageEl = document.getElementById('ageDisplay');
+  var age = calculateAge(dob);
+  ageEl.textContent = (age !== '') ? ('Age: ' + age) : '';
+}
+
+var cameraStream = null;
+var cameraTarget = null;
+
+function openCameraModal(target) {
+  cameraTarget = target;
+  document.getElementById('cameraModal').classList.add('active');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert('Camera access is not supported in this browser. Please use Gallery instead.');
+    closeCameraModal();
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false }).then(function (stream) {
+    cameraStream = stream;
+    var video = document.getElementById('cameraVideo');
+    video.srcObject = stream;
+    video.onloadedmetadata = function () { positionCameraFrame(); };
+  }).catch(function (err) {
+    alert('Could not access camera: ' + err.message + '\nPlease check camera permissions, or use Gallery instead.');
+    closeCameraModal();
+  });
+}
+function positionCameraFrame() {
+  var video = document.getElementById('cameraVideo');
+  var frame = document.getElementById('cameraFrame');
+  var vw = video.clientWidth;
+  var vh = video.clientHeight;
+  var fw = vw * 0.85;
+  var fh = fw / 1.586;
+  if (fh > vh * 0.8) { fh = vh * 0.8; fw = fh * 1.586; }
+  frame.style.width = fw + 'px';
+  frame.style.height = fh + 'px';
+  frame.style.left = ((vw - fw) / 2) + 'px';
+  frame.style.top = ((vh - fh) / 2) + 'px';
+}
+function closeCameraModal() {
+  document.getElementById('cameraModal').classList.remove('active');
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(function (t) { t.stop(); });
+    cameraStream = null;
+  }
+}
+function showPhotoPreview(boxId, dataUrl) {
+  var box = document.getElementById(boxId);
+  box.querySelector('.ph-label').style.display = 'none';
+  var old = box.querySelector('img.preview');
+  if (old) old.remove();
+  var img = document.createElement('img');
+  img.src = dataUrl;
+  img.className = 'preview';
+  box.appendChild(img);
+}
+function captureCameraPhoto() {
+  var video = document.getElementById('cameraVideo');
+  var canvas = document.getElementById('cameraCanvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  var ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  var dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+  if (cameraTarget === 'idFront') { idFrontData = dataUrl; showPhotoPreview('idFrontBox', dataUrl); }
+  else if (cameraTarget === 'idBack') { idBackData = dataUrl; showPhotoPreview('idBackBox', dataUrl); }
+  closeCameraModal();
 }
 
 function toggleIdMode() {
@@ -1879,9 +1978,7 @@ window.onload = function () {
   });
 
   document.getElementById('btnIdFrontCam').addEventListener('click', function () {
-    var i = document.getElementById('idFrontInput');
-    i.setAttribute('capture', 'user');
-    i.click();
+    openCameraModal('idFront');
   });
   document.getElementById('btnIdFrontGal').addEventListener('click', function () {
     var i = document.getElementById('idFrontInput');
@@ -1889,9 +1986,7 @@ window.onload = function () {
     i.click();
   });
   document.getElementById('btnIdBackCam').addEventListener('click', function () {
-    var i = document.getElementById('idBackInput');
-    i.setAttribute('capture', 'user');
-    i.click();
+    openCameraModal('idBack');
   });
   document.getElementById('btnIdBackGal').addEventListener('click', function () {
     var i = document.getElementById('idBackInput');
