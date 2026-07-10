@@ -1100,6 +1100,32 @@ function restoreFormData(d){
       if(d['workExpData']&&d['workExpData'][bi]) Array.from(block.querySelectorAll('input,textarea')).forEach(function(el,ei){ el.value=d['workExpData'][bi][ei]||''; });
     });
   }
+  if(d['familyRows']&&d['familyRows'].length>0){
+    var ftb=document.getElementById('familyBody');
+    ftb.innerHTML='';
+    d['familyRows'].forEach(function(row){
+      addFamilyRow();
+      var tr=ftb.rows[ftb.rows.length-1];
+      Array.from(tr.querySelectorAll('input')).forEach(function(inp,idx){
+        inp.value=row[idx]||'';
+      });
+    });
+  }
+  if(d['academicRows']&&d['academicRows'].length>0){
+    var atb=document.getElementById('academicBody');
+    atb.innerHTML='';
+    d['academicRows'].forEach(function(row){
+      addAcademicRow();
+      var tr=atb.rows[atb.rows.length-1];
+      Array.from(tr.querySelectorAll('input')).forEach(function(inp,idx){
+        if(inp.type==='radio'){
+          if(row[idx]) inp.checked=(inp.value===row[idx]);
+        } else {
+          inp.value=row[idx]||'';
+        }
+      });
+    });
+  }
   if(d['sigData']&&sigCtx){ var img2=new Image(); img2.onload=function(){ sigCtx.drawImage(img2,0,0); }; img2.src=d['sigData']; }
   document.getElementById('dobSource').textContent=d['dob']?'(loaded from draft)':'';
   updateDobMandatory();
