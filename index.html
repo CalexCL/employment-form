@@ -1854,27 +1854,52 @@ var CAMERA_FRAME = {
 function openCameraModal(target){
   cameraTarget = target;
   var cfg = CAMERA_FRAME[target];
-  document.getElementById('cameraModalTitle').textContent = cfg.label;
-  document.getElementById('cameraHint').textContent =
-    (target==='passport') ? 'Position your face within the green frame' :
-    'Hold your I/C flat and steady within the blue frame';
-  document.getElementById('cameraModal').classList.add('active');
-  var video = document.getElementById('cameraVideo');
-  if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
-    navigator.mediaDevices.getUserMedia({
-      video:{ facingMode:{ ideal: cfg.facingMode }, width:{ ideal:1280 }, height:{ ideal:720 } }
-    }).then(function(stream){
-      cameraStream = stream;
-      video.srcObject = stream;
-      video.onloadedmetadata = function(){ video.play(); drawFrameGuide(); };
-    }).catch(function(err){
-      closeCameraModal();
-      alert('Camera not available: '+err.message+'\nPlease use the Gallery option instead.');
-    });
-  } else {
-    closeCameraModal();
-    alert('Camera not supported in this browser.\nPlease use the Gallery option.');
+
+  // ── Layer 2: pre-flight checks ──────────────────────────────────────────
+  // If not a secure context (file://) getUserMedia will always fail.
+  // Fall back immediately to native file-capture — no error shown to user.
+  if(!window.isSecureContext){
+    _cameraFallback(target, cfg);
+    return;
   }
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    _cameraFallback(target, cfg);
+    return;
+  }
+
+  // ── Layer 1: request permission BEFORE showing any overlay ───────────────
+  // This is the critical fix: Chrome on Android blocks permission dialogs
+  // when a full-screen overlay is already visible (anti-clickjacking guard).
+  // We get the stream first; only then do we open the modal.
+  navigator.mediaDevices.getUserMedia({
+    video:{ facingMode:{ ideal: cfg.facingMode }, width:{ ideal:1280 }, height:{ ideal:720 } }
+  }).then(function(stream){
+    // Stream granted — NOW it is safe to show the overlay
+    cameraStream = stream;
+    document.getElementById('cameraModalTitle').textContent = cfg.label;
+    document.getElementById('cameraHint').textContent =
+      (target==='passport') ? 'Position your face within the green frame' :
+      'Hold your I/C flat and steady within the blue frame';
+    document.getElementById('cameraModal').classList.add('active');
+    var video = document.getElementById('cameraVideo');
+    video.srcObject = stream;
+    video.onloadedmetadata = function(){ video.play(); drawFrameGuide(); };
+  }).catch(function(err){
+    // Permission denied, hardware unavailable, or any other failure →
+    // fall back silently to native camera file input (no alert, no disruption)
+    _cameraFallback(target, cfg);
+  });
+}
+
+// Native file-input fallback — triggers device camera app directly,
+// works on any protocol and requires no browser permission prompt.
+function _cameraFallback(target, cfg){
+  var inputId = target==='passport' ? 'photoInput' :
+                target==='idFront'  ? 'idFrontInput' : 'idBackInput';
+  var input = document.getElementById(inputId);
+  // environment camera for documents, user (selfie) for passport photo
+  input.setAttribute('capture', cfg.facingMode==='user' ? 'user' : 'environment');
+  input.click();
 }
 
 function drawFrameGuide(){
