@@ -110,7 +110,8 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
   .form-wrap{box-shadow:none;padding:0}
   .declaration-box{max-height:none!important;overflow:visible!important}
   #appointmentLetterSection{display:none!important}
-  #appendix1Text{overflow:visible!important;border:1px solid #999!important;background:#fff!important}
+  #appendix1Text{display:none!important}
+  #appendix1Print{display:block!important}
   body.print-letter-only .form-wrap>*{display:none!important}
   body.print-letter-only #appointmentLetterSection{display:block!important;max-height:none!important;overflow:visible!important;border:none!important;padding:0!important}
 }
@@ -538,6 +539,7 @@ td input,td select{border:none;width:100%;font-size:12px;background:transparent;
     <label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="appendixManual" onchange="onAppendixManualToggle()" style="width:15px;height:15px"> Manually fill / edit Appendix 1 (Job Description)</label>
     <div style="font-size:11px;color:#888;margin:2px 0 6px">Auto-filled from the selected Job Title Level. Tick to edit manually; untick to restore the standard job description.</div>
     <textarea id="appendix1Text" style="min-height:200px;background:#f4f6f8" readonly oninput="if(isAdmin) renderAppointmentLetter()"></textarea>
+    <div id="appendix1Print" style="display:none;white-space:pre-wrap;border:1px solid #999;padding:8px 10px;font-family:inherit;font-size:inherit;background:#fff"></div>
   </div>
 </div>
 
@@ -1086,13 +1088,8 @@ function scheduleAutoSave(){
 function printForm(){
   var errs=validatePrint(); if(errs.length>0){ showErrors(errs); return; }
   clearErrors();
-  var ta=document.getElementById('appendix1Text');
-  var origHeight=ta.style.height, origOverflow=ta.style.overflow;
-  ta.style.height='auto';
-  ta.style.height=ta.scrollHeight+'px';
-  ta.style.overflow='visible';
+  document.getElementById('appendix1Print').textContent = document.getElementById('appendix1Text').value;
   window.print();
-  setTimeout(function(){ ta.style.height=origHeight; ta.style.overflow=origOverflow; }, 300);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
